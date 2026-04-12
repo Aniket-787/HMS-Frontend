@@ -82,14 +82,6 @@ export const LoginPage = () => {
             Sign In
           </Button>
         </form>
-
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Demo Credentials:
-          <br />
-          Email: superadmin@gmail.com
-          <br />
-          Password: 12345
-        </p>
       </div>
     </div>
   );
