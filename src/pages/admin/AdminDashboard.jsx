@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Stethoscope } from 'lucide-react';
+import { Plus, Users, Stethoscope, Bed } from 'lucide-react';
 import { Button, Card } from '../../components/common';
 import { adminService } from '../../services/apiServices';
 import { useEffect, useState } from 'react';
@@ -67,6 +67,13 @@ export const AdminDashboard = () => {
       description: 'Add a new receptionist to your hospital',
       onClick: () => navigate('/admin/create-receptionist'),
       color: 'text-green-600',
+    },
+    {
+      icon: Bed,
+      label: 'Bed Management',
+      description: 'Manage hospital beds and availability',
+      onClick: () => navigate('/admin/bed-management'),
+      color: 'text-red-600',
     },
   ];
 

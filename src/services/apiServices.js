@@ -76,8 +76,21 @@ export const adminService = {
 
   getAppointments: ()=>{
     return axiosInstance.get('/admin/appointments')
-  }
+  },
 
+  // Bed Management
+  createBed: (data) => {
+    return axiosInstance.post('/admin/createbed', data);
+  },
+
+  getBeds: () => {
+    return axiosInstance.get('/admin/beds');
+  },
+
+  // Hospital Management
+  getHospital: () => {
+    return axiosInstance.get('/admin/hospital');
+  },
 };
 
 export const receptionistService = {
@@ -145,5 +158,30 @@ export const doctorService = {
 
   getTotalpatients : ()=>{
     return axiosInstance.get('/doctor/total/patients')
-  }
+  },
+
+  // IPD Management
+  admitPatient: (data) => {
+    return axiosInstance.post('/doctor/admit/ipd', data);
+  },
+
+  getAdmittedPatients: () => {
+    return axiosInstance.get('/doctor/ipd/admitted');
+  },
+
+  getDischargedPatients: () => {
+    return axiosInstance.get('/doctor/ipd/discharged');
+  },
+
+  addDailyNotes: (ipdId, data) => {
+    return axiosInstance.post(`/doctor/ipd/${ipdId}/notes`, data);
+  },
+
+  addCharges: (ipdId, data) => {
+    return axiosInstance.post(`/doctor/ipd/${ipdId}/charges`, data);
+  },
+
+  dischargePatient: (ipdId) => {
+    return axiosInstance.put(`/doctor/ipd/discharge/${ipdId}`);
+  },
 };

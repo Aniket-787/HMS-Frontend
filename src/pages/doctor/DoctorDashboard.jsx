@@ -1,4 +1,4 @@
-import { Clock, CheckCircle, Users } from 'lucide-react';
+import { Clock, CheckCircle, Users, Bed, FileText } from 'lucide-react';
 import { Button, Card } from '../../components/common';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -82,7 +82,7 @@ export const DoctorDashboard = () => {
 
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="flex items-start gap-4">
             <div className="flex-shrink-0 text-orange-600">
               <Clock className="w-8 h-8" />
@@ -134,6 +134,42 @@ export const DoctorDashboard = () => {
               className="flex-shrink-0"
             >
               View
+            </Button>
+          </Card>
+
+          <Card className="flex items-start gap-4">
+            <div className="flex-shrink-0 text-red-600">
+              <Bed className="w-8 h-8" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">Admit Patient</h3>
+              <p className="text-sm text-gray-600 mt-1">Admit patient to IPD</p>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/doctor/admit-patient')}
+              className="flex-shrink-0"
+            >
+              Admit
+            </Button>
+          </Card>
+
+          <Card className="flex items-start gap-4">
+            <div className="flex-shrink-0 text-purple-600">
+              <FileText className="w-8 h-8" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">IPD Patients</h3>
+              <p className="text-sm text-gray-600 mt-1">Manage admitted patients</p>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/doctor/ipd-patients')}
+              className="flex-shrink-0"
+            >
+              Manage
             </Button>
           </Card>
         </div>

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/DashboardLayout';
+import { PrintableBill } from './components/PrintableBill';
 import { ROLES } from './utils/constants';
 
 // Pages
@@ -19,6 +20,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { CreateDoctorPage } from './pages/admin/CreateDoctorPage';
 import { CreateReceptionistPage } from './pages/admin/CreateReceptionistPage';
 import { StaffListPage } from './pages/admin/StaffListPage';
+import { BedManagementPage } from './pages/admin/BedManagementPage';
 
 // Receptionist Pages
 import { ReceptionistDashboard } from './pages/receptionist/ReceptionistDashboard';
@@ -33,6 +35,8 @@ import { DoctorQueuePage } from './pages/doctor/DoctorQueuePage';
 import { PatientHistoryPage } from './pages/doctor/PatientHistoryPage';
 import { CompletedPage } from './pages/doctor/CompletedPage';
 import { MyPatientsPage } from './pages/doctor/MyPatientsPage';
+import { AdmitPatientPage } from './pages/doctor/AdmitPatientPage';
+import { IPDPatientsPage } from './pages/doctor/IPDPatientsPage';
 
 const AppRoutes = () => {
   const { userRole } = useAuth();
@@ -42,6 +46,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/bill/:ipdId" element={<PrintableBill />} />
 
       {/* Super Admin Routes */}
       <Route
@@ -126,6 +131,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/bed-management"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+            <DashboardLayout>
+              <BedManagementPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Receptionist Routes */}
       <Route
@@ -196,6 +211,26 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRoles={[ROLES.DOCTOR]}>
             <DashboardLayout>
               <DoctorQueuePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/admit-patient"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.DOCTOR]}>
+            <DashboardLayout>
+              <AdmitPatientPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/ipd-patients"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.DOCTOR]}>
+            <DashboardLayout>
+              <IPDPatientsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
