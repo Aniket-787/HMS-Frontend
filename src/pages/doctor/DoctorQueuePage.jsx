@@ -5,22 +5,35 @@ import { Button, Card, Loading, EmptyState, ErrorAlert, Badge } from '../../comp
 import { Modal } from '../../components/Modal';
 import { FormInput, FormTextarea } from '../../components/common';
 import { formatDate } from '../../utils/helpers';
+import { toast } from 'react-toastify';
 
 export const DoctorQueuePage = () => {
   const navigate = useNavigate();
+
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [selectedOPD, setSelectedOPD] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [updatingId, setUpdatingId] = useState(null);
+
   const [formData, setFormData] = useState({
     diagnosis: '',
+    generalExamination: '',
+    investigation: '',
     medicines: [],
     notes: '',
+    followUpDate: '',
     status: 'IN_PROGRESS',
   });
-  const [medicineInput, setMedicineInput] = useState({ name: '', dosage: '', duration: '' });
-  const [updatingId, setUpdatingId] = useState(null);
+
+  const [medicineInput, setMedicineInput] = useState({
+    name: '',
+    dosage: '',
+    duration: '',
+  });
 
   useEffect(() => {
     fetchQueue();
@@ -30,8 +43,8 @@ export const DoctorQueuePage = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await doctorService.getQueue();    
-      setQueue(response.data.opdList || []);
+      const res = await doctorService.getQueue();
+      setQueue(res.data.opdList || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch queue');
     } finally {
@@ -41,23 +54,49 @@ export const DoctorQueuePage = () => {
 
   const handleOpenModal = (opd) => {
     setSelectedOPD(opd);
+
     setFormData({
       diagnosis: opd.diagnosis || '',
+      generalExamination: opd.generalExamination || '',
+      investigation: opd.investigation || '',
       medicines: opd.medicines || [],
       notes: opd.notes || '',
+      followUpDate: opd.followUpDate
+        ? new Date(opd.followUpDate).toISOString().split('T')[0]
+        : '',
       status: opd.status || 'IN_PROGRESS',
     });
+
     setIsModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOPD(null);
+
+    setFormData({
+      diagnosis: '',
+      generalExamination: '',
+      investigation: '',
+      medicines: [],
+      notes: '',
+      followUpDate: '',
+      status: 'IN_PROGRESS',
+    });
+  };
+
   const handleAddMedicine = () => {
-    if (medicineInput.name && medicineInput.dosage && medicineInput.duration) {
-      setFormData({
-        ...formData,
-        medicines: [...formData.medicines, medicineInput],
-      });
-      setMedicineInput({ name: '', dosage: '', duration: '' });
+    if (!medicineInput.name || !medicineInput.dosage || !medicineInput.duration) {
+      toast.error('Fill all medicine fields');
+      return;
     }
+
+    setFormData({
+      ...formData,
+      medicines: [...formData.medicines, medicineInput],
+    });
+
+    setMedicineInput({ name: '', dosage: '', duration: '' });
   };
 
   const handleRemoveMedicine = (index) => {
@@ -69,44 +108,44 @@ export const DoctorQueuePage = () => {
 
   const handleUpdateOPD = async () => {
     try {
+      if (!formData.diagnosis) {
+        toast.error('Diagnosis is required');
+        return;
+      }
+
       setUpdatingId(selectedOPD._id);
+
       await doctorService.updateOPD(selectedOPD._id, {
-        diagnosis: formData.diagnosis,
-        medicines: formData.medicines,
-        notes: formData.notes,
-        status: formData.status,
+        ...formData,
+        followUpDate: formData.followUpDate || null,
       });
-      setIsModalOpen(false);
+
+      toast.success('OPD updated successfully!');
+      handleCloseModal();
       fetchQueue();
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update OPD');
+      const msg = err.response?.data?.message || 'Failed to update OPD';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setUpdatingId(null);
     }
   };
 
-  const handleViewHistory = (patientId) => {
-    navigate(`/doctor/patient/${patientId}/history`);
-  };
-
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'WAITING':
-        return 'badge-warning';
-      case 'IN_PROGRESS':
-        return 'badge-info';
-      case 'COMPLETED':
-        return 'badge-success';
-      default:
-        return 'badge-info';
-    }
+    if (status === 'WAITING') return 'warning';
+    if (status === 'COMPLETED') return 'success';
+    return 'info';
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Today's Queue</h1>
-        <p className="text-gray-600 mt-2">Manage patient appointments and consultations</p>
+    <div className="p-6">
+
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Doctor Queue</h1>
+        <p className="text-gray-600">Manage patient consultations</p>
       </div>
 
       {error && <ErrorAlert message={error} onClose={() => setError('')} />}
@@ -114,175 +153,105 @@ export const DoctorQueuePage = () => {
       {loading ? (
         <Loading />
       ) : queue.length === 0 ? (
-        <EmptyState message="No appointments for today" />
+        <EmptyState message="No patients today" />
       ) : (
         <div className="space-y-4">
-          {queue.map((opd, idx) => (
+          {queue.map((opd) => (
             <Card key={opd._id}>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-lg">
-                      <span className="text-xl font-bold text-primary-600">
-                        {opd.tokenNumber}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">
-                        {opd.patientId?.name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Phone: {opd.patientId?.phone}
-                      </p>
-                    </div>
-                  </div>
+              <div className="flex justify-between items-center">
+
+                <div>
+                  <p className="font-semibold">{opd.patientId?.name}</p>
+                  <p className="text-sm text-gray-600">{opd.patientId?.phone}</p>
                 </div>
 
-                <div className="text-right">
-                  <Badge variant={getStatusColor(opd.status)}>
-                    {opd.status}
-                  </Badge>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {formatDate(opd.visitDate)}
-                  </p>
-                </div>
+                <Badge variant={getStatusColor(opd.status)}>
+                  {opd.status}
+                </Badge>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleViewHistory(opd.patientId._id)}
-                  >
-                    History
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleOpenModal(opd)}
-                  >
-                    Update
-                  </Button>
-                </div>
+                <Button onClick={() => handleOpenModal(opd)}>
+                  Update
+                </Button>
               </div>
-
-              {opd.symptoms && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">Symptoms:</span> {opd.symptoms}
-                  </p>
-                </div>
-              )}
             </Card>
           ))}
         </div>
       )}
 
-      {/* Update OPD Modal */}
+      {/* MODAL */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         title="Update OPD"
-        size="lg"
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleUpdateOPD}
-              loading={updatingId === selectedOPD?._id}
-            >
-              Update
-            </Button>
-          </>
-        }
       >
         <div className="space-y-4">
-          <FormInput
+
+          <FormTextarea
             label="Diagnosis"
-            type="text"
-            placeholder="Enter diagnosis"
             value={formData.diagnosis}
             onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Add Medicines
-            </label>
-            <div className="space-y-2 mb-3">
-              <div className="grid grid-cols-3 gap-2">
-                <FormInput
-                  type="text"
-                  placeholder="Medicine name"
-                  value={medicineInput.name}
-                  onChange={(e) => setMedicineInput({ ...medicineInput, name: e.target.value })}
-                />
-                <FormInput
-                  type="text"
-                  placeholder="Dosage"
-                  value={medicineInput.dosage}
-                  onChange={(e) => setMedicineInput({ ...medicineInput, dosage: e.target.value })}
-                />
-                <FormInput
-                  type="text"
-                  placeholder="Duration"
-                  value={medicineInput.duration}
-                  onChange={(e) => setMedicineInput({ ...medicineInput, duration: e.target.value })}
-                />
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleAddMedicine}
-              >
-                Add Medicine
-              </Button>
-            </div>
+          <FormTextarea
+            label="General Examination"
+            value={formData.generalExamination}
+            onChange={(e) => setFormData({ ...formData, generalExamination: e.target.value })}
+          />
 
-            {formData.medicines.length > 0 && (
-              <div className="space-y-2">
-                {formData.medicines.map((med, idx) => (
-                  <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                    <p className="text-sm text-gray-700">
-                      {med.name} - {med.dosage} - {med.duration}
-                    </p>
-                    <button
-                      onClick={() => handleRemoveMedicine(idx)}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <FormTextarea
+            label="Investigation"
+            value={formData.investigation}
+            onChange={(e) => setFormData({ ...formData, investigation: e.target.value })}
+          />
 
           <FormTextarea
             label="Notes"
-            placeholder="Enter additional notes"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              className="input-field"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            >
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="COMPLETED">Completed</option>
-            </select>
+          <FormInput
+            label="Follow-up Date"
+            type="date"
+            value={formData.followUpDate}
+            onChange={(e) => setFormData({ ...formData, followUpDate: e.target.value })}
+          />
+
+          {/* Medicine */}
+          <div className="flex gap-2">
+            <FormInput
+              placeholder="Name"
+              value={medicineInput.name}
+              onChange={(e) => setMedicineInput({ ...medicineInput, name: e.target.value })}
+            />
+            <FormInput
+              placeholder="Dosage"
+              value={medicineInput.dosage}
+              onChange={(e) => setMedicineInput({ ...medicineInput, dosage: e.target.value })}
+            />
+            <FormInput
+              placeholder="Duration"
+              value={medicineInput.duration}
+              onChange={(e) => setMedicineInput({ ...medicineInput, duration: e.target.value })}
+            />
+            <Button onClick={handleAddMedicine}>Add</Button>
           </div>
+
+          {formData.medicines.map((m, i) => (
+            <div key={i} className="flex justify-between">
+              <span>{m.name}</span>
+              <button onClick={() => handleRemoveMedicine(i)}>Remove</button>
+            </div>
+          ))}
+
+          <Button
+            onClick={handleUpdateOPD}
+            loading={updatingId === selectedOPD?._id}
+            disabled={updatingId === selectedOPD?._id}
+          >
+            Update OPD
+          </Button>
+
         </div>
       </Modal>
     </div>

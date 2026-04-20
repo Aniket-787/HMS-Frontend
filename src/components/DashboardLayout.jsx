@@ -13,6 +13,8 @@ import {
   FileText,
   Search,
   List,
+  TrendingUp,
+  Bed,
 } from 'lucide-react';
 
 export const DashboardLayout = ({ children }) => {
@@ -36,6 +38,7 @@ export const DashboardLayout = ({ children }) => {
         { path: '/admin/create-doctor', label: 'Create Doctor', icon: Stethoscope },
         { path: '/admin/create-receptionist', label: 'Create Receptionist', icon: Users },
         { path: '/admin/staff', label: 'View Staff', icon: List },
+        { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
       ],
       [ROLES.RECEPTIONIST]: [
         ...baseMenu,
@@ -43,10 +46,13 @@ export const DashboardLayout = ({ children }) => {
         { path: '/receptionist/search-patient', label: 'Search Patient', icon: Search },
         { path: '/receptionist/create-opd', label: 'Create OPD', icon: Clock },
         { path: '/receptionist/opd-list', label: "Today's OPD", icon: List },
+        { path: '/receptionist/ipd', label: 'IPD Patients', icon: Bed },
+        { path: '/receptionist/analytics', label: 'Analytics', icon: TrendingUp },
       ],
       [ROLES.DOCTOR]: [
         ...baseMenu,
         { path: '/doctor/queue', label: "Today's Queue", icon: Clock },
+        { path: '/doctor/analytics', label: 'Analytics', icon: TrendingUp },
       ],
     };
 

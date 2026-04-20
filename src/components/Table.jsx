@@ -21,22 +21,21 @@ export const Table = ({ columns, data, loading, isEmpty }) => {
         <thead>
           <tr className="bg-gray-100 border-b-2 border-gray-200">
             {columns.map((col) => (
-              <th
-                key={col.key}
-                className="table-header text-left"
-                style={{ width: col.width }}
-              >
+              <th key={col.key} className="table-header text-left">
                 {col.label}
               </th>
             ))}
           </tr>
         </thead>
+
         <tbody>
-          {data.map((row, idx) => (
+          {data.filter(Boolean).map((row, idx) => (
             <tr key={idx} className="table-row">
               {columns.map((col) => (
                 <td key={col.key} className="table-cell">
-                  {col.render ? col.render(row) : row[col.key]}
+                  {col.render
+                    ? col.render(row)
+                    : row?.[col.key] || 'N/A'}
                 </td>
               ))}
             </tr>

@@ -3,11 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PrintableBill } from './components/PrintableBill';
+import { PrintableDischargeSummary } from './components/PrintableDischargeSummary';
 import { ROLES } from './utils/constants';
 
 // Pages
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { AboutUsPage } from './pages/AboutUsPage';
 
 // Super Admin Pages
 import { SuperAdminDashboard } from './pages/superadmin/SuperAdminDashboard';
@@ -21,6 +23,7 @@ import { CreateDoctorPage } from './pages/admin/CreateDoctorPage';
 import { CreateReceptionistPage } from './pages/admin/CreateReceptionistPage';
 import { StaffListPage } from './pages/admin/StaffListPage';
 import { BedManagementPage } from './pages/admin/BedManagementPage';
+import { AnalyticsPage } from './pages/admin/AnalyticsPage';
 
 // Receptionist Pages
 import { ReceptionistDashboard } from './pages/receptionist/ReceptionistDashboard';
@@ -28,6 +31,7 @@ import { RegisterPatientPage } from './pages/receptionist/RegisterPatientPage';
 import { SearchPatientPage } from './pages/receptionist/SearchPatientPage';
 import { CreateOPDPage } from './pages/receptionist/CreateOPDPage';
 import { OPDListPage } from './pages/receptionist/OPDListPage';
+import { ReceptionistIPDPage } from './pages/receptionist/ReceptionistIPDPage';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
@@ -46,7 +50,9 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/about" element={<AboutUsPage />} />
       <Route path="/bill/:ipdId" element={<PrintableBill />} />
+      <Route path="/discharge-summary/:ipdId" element={<PrintableDischargeSummary />} />
 
       {/* Super Admin Routes */}
       <Route
@@ -141,6 +147,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/analytics"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+            <DashboardLayout>
+              <AnalyticsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Receptionist Routes */}
       <Route
@@ -189,6 +205,26 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
             <DashboardLayout>
               <OPDListPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/receptionist/ipd"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
+            <DashboardLayout>
+              <ReceptionistIPDPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/receptionist/analytics"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
+            <DashboardLayout>
+              <AnalyticsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -264,8 +300,16 @@ const AppRoutes = () => {
             </DashboardLayout>
           </ProtectedRoute>
         }
+      />      <Route
+        path="/doctor/analytics"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.DOCTOR]}>
+            <DashboardLayout>
+              <AnalyticsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
       />
-
       {/* Role-based Root Route */}
       <Route
         path="/"

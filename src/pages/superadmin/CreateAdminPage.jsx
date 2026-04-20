@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { superAdminService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, FormSelect, Button, ErrorAlert, SuccessAlert } from '../../components/common';
+import { FormInput, FormSelect, Button } from '../../components/common';
+import { toast } from 'react-toastify';
 
 export const CreateAdminPage = () => {
   const navigate = useNavigate();
 
   const [hospitals, setHospitals] = useState([]);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   // ✅ Fetch hospitals on load
   useEffect(() => {
@@ -44,9 +43,6 @@ export const CreateAdminPage = () => {
     },
     async (formValues) => {
       try {
-        setErrorMessage('');
-        setSuccessMessage('');
-
         const newErrors = {};
 
         if (!formValues.name) newErrors.name = 'Name is required';
@@ -63,7 +59,7 @@ export const CreateAdminPage = () => {
 
         await superAdminService.createAdmin(formValues);
 
-        setSuccessMessage('Admin created successfully!');
+        toast.success('Admin created successfully!');
         resetForm();
 
         setTimeout(() => {
@@ -71,7 +67,7 @@ export const CreateAdminPage = () => {
         }, 2000);
 
       } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to create admin');
+        toast.error(error.response?.data?.message || 'Failed to create admin');
       }
     }
   );
@@ -83,13 +79,7 @@ export const CreateAdminPage = () => {
         <p className="text-gray-600 mt-2">Add a new admin for a hospital</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
       <div className="card">
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -39,22 +39,37 @@ export const PatientSearch = ({ onPatientSelect, placeholder = "Search by phone 
   const searchPatients = async (query) => {
     try {
       setLoading(true);
+      setSuggestions([]);
+      
       // Try searching by phone first
-      let response = await receptionistService.searchPatient(query);
+      try {
+        const response = await receptionistService.searchPatient(query);
+        if (response.data.patient) {
+          setSuggestions([response.data.patient]);
+          setShowSuggestions(true);
+          setLoading(false);
+          return;
+        }
+      } catch (phoneSearchError) {
+        // If phone search fails, continue to UHID search
+        console.log('Phone search did not find patient, trying UHID search');
+      }
 
-      if (response.data.patient) {
-        setSuggestions([response.data.patient]);
-      } else {
-        // If not found by phone, try searching in patient list by UHID
+      // If not found by phone, try searching in patient list by UHID and name
+      try {
         const allPatientsResponse = await receptionistService.getPatientList();
         const patients = allPatientsResponse.data.patientlist || [];
         const filteredPatients = patients.filter(patient =>
           patient.uhid.toLowerCase().includes(query.toLowerCase()) ||
-          patient.name.toLowerCase().includes(query.toLowerCase())
+          patient.name.toLowerCase().includes(query.toLowerCase()) ||
+          patient.phone.includes(query)
         );
         setSuggestions(filteredPatients.slice(0, 5)); // Limit to 5 suggestions
+        setShowSuggestions(true);
+      } catch (listSearchError) {
+        console.error('Error fetching patient list:', listSearchError);
+        setSuggestions([]);
       }
-      setShowSuggestions(true);
     } catch (error) {
       console.error('Search error:', error);
       setSuggestions([]);

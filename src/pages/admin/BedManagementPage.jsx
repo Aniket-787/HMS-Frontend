@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, FormSelect, Button, ErrorAlert, SuccessAlert, Loading} from '../../components/common';
+import { FormInput, FormSelect, Button, Loading} from '../../components/common';
 import { Table } from '../../components/Table';
+import { toast } from 'react-toastify';
 
 const BED_TYPES = [
   { value: 'GENERAL', label: 'General' },
@@ -13,8 +14,6 @@ const BED_TYPES = [
 export const BedManagementPage = () => {
   const [beds, setBeds] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     fetchBeds();
@@ -26,7 +25,7 @@ export const BedManagementPage = () => {
       const response = await adminService.getBeds();
       setBeds(response.data.beds || []);
     } catch (error) {
-      setErrorMessage('Failed to load beds');
+      toast.error('Failed to load beds');
     } finally {
       setLoadingData(false);
     }
@@ -40,7 +39,7 @@ export const BedManagementPage = () => {
     },
     async (formValues) => {
       try {
-        setErrorMessage('');
+        
 
         const newErrors = {};
         if (!formValues.bedNumber) newErrors.bedNumber = 'Bed number is required';
@@ -56,11 +55,11 @@ export const BedManagementPage = () => {
           chargePerDay: parseFloat(formValues.chargePerDay),
         });
 
-        setSuccessMessage('Bed created successfully!');
+        toast.success('Bed created successfully!');
         resetForm();
         fetchBeds(); // Refresh the list
       } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to create bed');
+        toast.error(error.response?.data?.message || 'Failed to create bed');
       }
     }
   );
@@ -120,12 +119,7 @@ export const BedManagementPage = () => {
         <p className="text-gray-600 mt-2">Manage hospital beds and their availability</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
       {/* Bed Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -36,6 +36,14 @@ export const superAdminService = {
   getHospitalById: (id) => {
     return axiosInstance.get(`/superAdmin/hospital/${id}`);
   },
+
+  uploadHospitalLogo: (formData) => {
+    return axiosInstance.put('/superAdmin/hospital/upload-logo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 export const adminService = {
@@ -90,6 +98,10 @@ export const adminService = {
   // Hospital Management
   getHospital: () => {
     return axiosInstance.get('/admin/hospital');
+  },
+
+  getHospitalStats: () => {
+    return axiosInstance.get('/admin/hospital/stats');
   },
 };
 
@@ -183,5 +195,32 @@ export const doctorService = {
 
   dischargePatient: (ipdId) => {
     return axiosInstance.put(`/doctor/ipd/discharge/${ipdId}`);
+  },
+
+  // Discharge Summary
+  createDischargeSummary: (data) => {
+    return axiosInstance.post('/discharge/discharge-summary', data);
+  },
+
+  getDischargeSummary: (ipdId) => {
+    return axiosInstance.get(`/discharge/discharge-summary/${ipdId}`);
+  },
+
+  getAllDischargeSummaries: () => {
+    return axiosInstance.get('/discharge/discharge-summary');
+  },
+};
+
+export const analyticsService = {
+  getTodayRevenue: () => {
+    return axiosInstance.get('/analytics/revenue/today');
+  },
+
+  getLast30DaysRevenue: () => {
+    return axiosInstance.get('/analytics/revenue/last-30-days');
+  },
+
+  getDailyRevenue: () => {
+    return axiosInstance.get('/analytics/revenue/daily');
   },
 };

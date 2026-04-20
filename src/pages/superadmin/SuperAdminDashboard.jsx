@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Building2 } from 'lucide-react';
+import { Plus, Users, Building2, Upload } from 'lucide-react';
 import { Button, Card } from '../../components/common';
 import { useState, useEffect } from 'react';
 import {superAdminService} from '../../services/apiServices'
@@ -11,6 +11,10 @@ export const SuperAdminDashboard = () => {
    const [patients, setPatients] = useState([]);
    const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showLogoModal, setShowLogoModal] = useState(false);
+  const [selectedHospital, setSelectedHospital] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
    useEffect(() => {
   fetchHospitals();
   fetchAdmins();
@@ -78,7 +82,36 @@ const fetchPatients = async () => {
       onClick: () => navigate('/superadmin/create-admin'),
       color: 'text-green-600',
     },
+    {
+      icon: Upload,
+      label: 'Upload Logo',
+      description: 'Upload or update hospital logo',
+      onClick: () => setShowLogoModal(true),
+      color: 'text-purple-600',
+    },
   ];
+
+  const handleLogoUpload = async () => {
+    if (!selectedHospital || !logoFile) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('logo', logoFile);
+      formData.append('hospitalId', selectedHospital._id);
+
+      await superAdminService.uploadHospitalLogo(formData);
+      setShowLogoModal(false);
+      setSelectedHospital(null);
+      setLogoFile(null);
+      // Refresh hospitals data
+      fetchHospitals();
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to upload logo');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div>
@@ -88,21 +121,25 @@ const fetchPatients = async () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="text-center">
-          <p className="text-4xl font-bold text-primary-600">{hospitals.length}</p>
-          <p className="text-gray-600 mt-2">Total Hospitals</p>
+        <Card className="text-center bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Building2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+          <p className="text-3xl font-bold text-blue-600">{hospitals.length}</p>
+          <p className="text-gray-600 mt-1">Total Hospitals</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-4xl font-bold text-green-600">{admins.length}</p>
-          <p className="text-gray-600 mt-2">Active Admins</p>
+        <Card className="text-center bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
+          <p className="text-3xl font-bold text-green-600">{admins.length}</p>
+          <p className="text-gray-600 mt-1">Active Admins</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-4xl font-bold text-blue-600">{staff.length-1}</p>
-          <p className="text-gray-600 mt-2">Total Staff</p>
+        <Card className="text-center bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+          <p className="text-3xl font-bold text-purple-600">{staff.length-1}</p>
+          <p className="text-gray-600 mt-1">Total Staff</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-4xl font-bold text-purple-600">{patients.length}</p>
-          <p className="text-gray-600 mt-2">Total Patients</p>
+        <Card className="text-center bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Users className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+          <p className="text-3xl font-bold text-orange-600">{patients.length}</p>
+          <p className="text-gray-600 mt-1">Total Patients</p>
         </Card>
       </div>
 
@@ -142,6 +179,77 @@ const fetchPatients = async () => {
           View All Hospitals
         </Button>
       </div>
+
+      {/* Logo Upload Modal */}
+      {showLogoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Upload Hospital Logo</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Hospital
+                </label>
+                <select
+                  className="input-field"
+                  value={selectedHospital?._id || ''}
+                  onChange={(e) => {
+                    const hospital = hospitals.find(h => h._id === e.target.value);
+                    setSelectedHospital(hospital);
+                  }}
+                >
+                  <option value="">Choose a hospital...</option>
+                  {hospitals.map((hospital) => (
+                    <option key={hospital._id} value={hospital._id}>
+                      {hospital.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Logo Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setLogoFile(e.target.files[0])}
+                  className="input-field"
+                />
+              </div>
+
+              {logoFile && (
+                <div className="text-sm text-gray-600">
+                  Selected: {logoFile.name}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowLogoModal(false);
+                  setSelectedHospital(null);
+                  setLogoFile(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleLogoUpload}
+                loading={uploading}
+                disabled={!selectedHospital || !logoFile}
+              >
+                Upload
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

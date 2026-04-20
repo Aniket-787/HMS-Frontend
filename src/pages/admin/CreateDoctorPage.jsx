@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, Button, ErrorAlert, SuccessAlert } from '../../components/common';
+import { FormInput, Button } from '../../components/common';
+import { toast } from 'react-toastify';
 
 export const CreateDoctorPage = () => {
   const navigate = useNavigate();
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   const {
     values,
@@ -30,8 +29,6 @@ export const CreateDoctorPage = () => {
     },
     async (formValues) => {
       try {
-        setErrorMessage('');
-
         const newErrors = {};
         if (!formValues.name) newErrors.name = 'Name is required';
         if (!formValues.email) newErrors.email = 'Email is required';
@@ -57,12 +54,12 @@ export const CreateDoctorPage = () => {
           followUpFee: parseFloat(formValues.followUpFee),
         });
 
-        setSuccessMessage('Doctor created successfully!');
+        toast.success('Doctor created successfully!');
         resetForm();
         setTimeout(() => navigate('/admin'), 2000);
 
       } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to create doctor');
+        toast.error(error.response?.data?.message || 'Failed to create doctor');
       }
     }
   );
@@ -74,12 +71,7 @@ export const CreateDoctorPage = () => {
         <p className="text-gray-600 mt-2">Add a new doctor to your hospital</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
       <div className="card">
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -5,6 +5,7 @@ export { ProtectedRoute, PublicRoute } from './ProtectedRoute';
 export { Modal, ConfirmModal } from './Modal';
 export { PatientSearch } from './PatientSearch';
 export { Table } from './Table';
+export { OPDBill } from './OPDBill';
 export {
   Button,
   FormInput,

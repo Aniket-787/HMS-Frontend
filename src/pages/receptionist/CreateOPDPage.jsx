@@ -2,21 +2,21 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { receptionistService, adminService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, FormSelect, Button, ErrorAlert, SuccessAlert, Loading } from '../../components/common';
+import { FormInput, FormSelect, Button, Loading, Card } from '../../components/common';
 import { PatientSearch } from '../../components';
+import { toast } from 'react-toastify';
+import { Stethoscope, DollarSign, Clock } from 'lucide-react';
 
 export const CreateOPDPage = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [feeAmount, setFeeAmount] = useState(0);
   const [hospital, setHospital] = useState(null);
   const [createdBill, setCreatedBill] = useState(null);
-
+ const [errorMessage, setErrorMessage] = useState('');
   useEffect(() => {
     fetchDoctors();
     fetchHospital();
@@ -28,7 +28,7 @@ export const CreateOPDPage = () => {
       const doctorsRes = await receptionistService.getDoctors();
       setDoctors(doctorsRes.data.doctors || []);
     } catch (error) {
-      setErrorMessage('Failed to load doctors');
+      toast.error('Failed to load doctors');
     } finally {
       setLoadingData(false);
     }
@@ -73,20 +73,22 @@ export const CreateOPDPage = () => {
 
         const response = await receptionistService.createOPD(formValues);
         const createdOPD = response.data.OPD;
-
+        console.log(response)
         setCreatedBill({
           ...createdOPD,
           patient: selectedPatient,
           doctor: selectedDoctor,
         });
 
-        setSuccessMessage('OPD created successfully!');
+        toast.success('OPD created successfully!');
         resetForm();
         setSelectedPatient(null);
         setSelectedDoctor(null);
         setFeeAmount(0);
       } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to create OPD');
+        const errorMsg = error.response?.data?.message || 'Failed to create OPD';
+        setErrorMessage(errorMsg);
+        toast.error(errorMsg);
       }
     }
   );
@@ -124,111 +126,166 @@ export const CreateOPDPage = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create OPD</h1>
-        <p className="text-gray-600 mt-2">Register a patient for OPD appointment</p>
+        <h1 className="text-4xl font-bold text-gray-900">Create OPD Appointment</h1>
+        <p className="text-gray-600 mt-2">Register a new outpatient department appointment</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
-      <div className="card">
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* 🔍 Patient Search */}
-          <PatientSearch
-            onPatientSelect={handlePatientSelect}
-            placeholder="Search patient by phone or UHID..."
-          />
-
-          {/* 👨‍⚕️ Doctor Select */}
-          <FormSelect
-            label="Doctor"
-            name="doctorId"
-            options={doctors.map((doc) => ({
-              value: doc._id,
-              label: `Dr. ${doc.name} (${doc.profile?.specialization || 'General'})`,
-            }))}
-            value={values.doctorId}
-            onChange={handleDoctorChange}
-            error={errors.doctorId}
-            touched={touched.doctorId}
-            required
-          />
-
-          {/* 💰 Fee Display */}
-          {selectedDoctor && (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Doctor Fees</h3>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Consultation Fee:</span>
-                  <span className="ml-2 font-medium text-blue-700">
-                    ₹{selectedDoctor.profile?.consultationFee || 0}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-gray-600">Follow-up Fee:</span>
-                  <span className="ml-2 font-medium text-blue-700">
-                    ₹{selectedDoctor.profile?.followUpFee || 0}
-                  </span>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Form */}
+        <div className="lg:col-span-2">
+          <Card>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Patient Selection */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  Patient Information
+                </h3>
+                <PatientSearch
+                  onPatientSelect={handlePatientSelect}
+                  placeholder="Search patient by phone or UHID..."
+                />
+                {selectedPatient && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-600 font-medium">✓ Patient Selected</p>
+                    <p className="text-sm text-gray-700 mt-1"><strong>{selectedPatient.name}</strong> ({selectedPatient.uhid})</p>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-2 pt-2 border-t border-blue-200">
-                <span className="text-gray-700 font-medium">Amount to be charged: </span>
-                <span className="text-lg font-bold text-blue-800">₹{feeAmount}</span>
+              {/* Doctor Selection */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Stethoscope className="w-5 h-5 text-blue-600" />
+                  Doctor Assignment
+                </h3>
+                <FormSelect
+                  label="Select Doctor"
+                  name="doctorId"
+                  options={doctors.map((doc) => ({
+                    value: doc._id,
+                    label: `Dr. ${doc.name} (${doc.profile?.specialization || 'General'})`,
+                  }))}
+                  value={values.doctorId}
+                  onChange={handleDoctorChange}
+                  error={errors.doctorId}
+                  touched={touched.doctorId}
+                  required
+                />
               </div>
-            </div>
-          )}
 
-          {/* 🩺 Symptoms */}
-          <FormInput
-            label="Symptoms"
-            type="text"
-            name="symptoms"
-            placeholder="Enter patient symptoms"
-            value={values.symptoms}
-            onChange={handleChange}
-            error={errors.symptoms}
-            touched={touched.symptoms}
-            required
-          />
+              {/* Symptoms & Payment */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Medical Details</h3>
+                <FormInput
+                  label="Symptoms"
+                  type="text"
+                  name="symptoms"
+                  placeholder="e.g., Fever, Cough, Headache"
+                  value={values.symptoms}
+                  onChange={handleChange}
+                  error={errors.symptoms}
+                  touched={touched.symptoms}
+                  required
+                />
+                <FormSelect
+                  label="Payment Status"
+                  name="paymentStatus"
+                  options={[
+                    { value: 'PAID', label: 'Paid' },
+                    { value: 'UNPAID', label: 'Unpaid' },
+                  ]}
+                  value={values.paymentStatus}
+                  onChange={handleChange}
+                  error={errors.paymentStatus}
+                  touched={touched.paymentStatus}
+                  required
+                />
+              </div>
 
-          {/* 💳 Payment Status */}
-          <FormSelect
-            label="Payment Status"
-            name="paymentStatus"
-            options={[
-              { value: 'PAID', label: 'Paid' },
-              { value: 'UNPAID', label: 'Unpaid' },
-            ]}
-            value={values.paymentStatus}
-            onChange={handleChange}
-            error={errors.paymentStatus}
-            touched={touched.paymentStatus}
-            required
-          />
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-6 border-t border-gray-200">
+                <Button type="submit" variant="primary" loading={isSubmitting} fullWidth>
+                  Create OPD Appointment
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => navigate('/receptionist')}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
 
-          {/* 🔘 Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" variant="primary" loading={isSubmitting}>
-              Create OPD
-            </Button>
+        {/* Fee Summary Sidebar */}
+        <div className="space-y-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-blue-600" />
+              Fee Summary
+            </h3>
+            
+            {selectedDoctor ? (
+              <div className="space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <p className="text-sm text-gray-600 mb-1">Doctor</p>
+                  <p className="font-semibold text-gray-900">Dr. {selectedDoctor.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">{selectedDoctor.profile?.specialization || 'General'}</p>
+                </div>
 
-            <Button type="button" variant="secondary" onClick={() => navigate('/receptionist')}>
-              Cancel
-            </Button>
-          </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Consultation Fee:</span>
+                    <span className="font-semibold text-gray-900">₹{selectedDoctor.profile?.consultationFee || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Follow-up Fee:</span>
+                    <span className="font-semibold text-gray-900">₹{selectedDoctor.profile?.followUpFee || 0}</span>
+                  </div>
+                </div>
 
-        </form>
+                <div className="bg-white p-4 rounded-lg border-2 border-blue-500">
+                  <p className="text-xs text-gray-600 mb-1">Amount to Charge</p>
+                  <p className="text-2xl font-bold text-blue-600">₹{feeAmount}</p>
+                </div>
+
+                <div className={`p-3 rounded-lg text-sm font-medium ${
+                  values.paymentStatus === 'PAID' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  Payment: {values.paymentStatus === 'PAID' ? '✓ Paid' : '⏳ Unpaid'}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">Select a doctor to view fee details</p>
+              </div>
+            )}
+          </Card>
+
+          {/* Quick Info */}
+          <Card className="bg-amber-50 border border-amber-200">
+            <h4 className="font-semibold text-amber-900 mb-3">Important Notes</h4>
+            <ul className="text-sm text-amber-800 space-y-2">
+              <li className="flex gap-2">
+                <span>•</span>
+                <span>Ensure patient details are verified before creating OPD</span>
+              </li>
+              <li className="flex gap-2">
+                <span>•</span>
+                <span>Consultation fee will be charged based on doctor's profile</span>
+              </li>
+              <li className="flex gap-2">
+                <span>•</span>
+                <span>A bill will be generated after successful creation</span>
+              </li>
+            </ul>
+          </Card>
+        </div>
       </div>
 
       {createdBill && (

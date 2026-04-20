@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doctorService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, FormSelect, Button, ErrorAlert, SuccessAlert, Loading, Card } from '../../components/common';
+import { FormInput, FormSelect, Button, Loading, Card } from '../../components/common';
 import { Modal } from '../../components/Modal';
 import { Table } from '../../components/Table';
-
+import { FormTextarea } from '../../components/common';
+import { toast } from 'react-toastify';
 
 
 const CHARGE_TYPES = [
@@ -21,11 +22,10 @@ export const IPDPatientsPage = () => {
   const [dischargedPatients, setDischargedPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [showChargesModal, setShowChargesModal] = useState(false);
-
+  const [showDischargeSummaryModal, setShowDischargeSummaryModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -40,70 +40,141 @@ export const IPDPatientsPage = () => {
       setAdmittedPatients(admittedRes.data.patients || []);
       setDischargedPatients(dischargedRes.data.patients || []);
     } catch (error) {
-      setErrorMessage('Failed to load patients');
+      toast.error('Failed to load patients');
     } finally {
       setLoadingData(false);
     }
   };
 
   const notesForm = useForm(
-    {
-      notes: '',
-      medicines: [{ name: '', dosage: '' }],
-    },
-    async (formValues) => {
-      try {
-        setErrorMessage('');
-        await doctorService.addDailyNotes(selectedPatient._id, {
-          notes: formValues.notes,
-          medicines: formValues.medicines.filter(med => med.name && med.dosage),
-        });
-        setSuccessMessage('Daily notes added successfully!');
-        setShowNotesModal(false);
-        notesForm.resetForm();
-        fetchPatients();
-      } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to add notes');
-      }
-    }
-  );
-
-  const chargesForm = useForm(
-    {
-      type: '',
-      description: '',
-      amount: '',
-    },
-    async (formValues) => {
-      try {
-        setErrorMessage('');
-        await doctorService.addCharges(selectedPatient._id, {
-          ...formValues,
-          amount: parseFloat(formValues.amount),
-        });
-        setSuccessMessage('Charge added successfully!');
-        setShowChargesModal(false);
-        chargesForm.resetForm();
-        fetchPatients();
-      } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to add charge');
-      }
-    }
-  );
-
-  const handleDischarge = async (patientId) => {
-    if (!window.confirm('Are you sure you want to discharge this patient?')) return;
-
+  {
+    notes: '',
+    medicines: [{ name: '', dosage: '' }],
+  },
+  async (formValues) => {
     try {
+      if (!selectedPatient?._id) {
+        toast.error('No patient selected');
+        return;
+      }
+
       setErrorMessage('');
-      await doctorService.dischargePatient(patientId);
-      setSuccessMessage('Patient discharged successfully!');
+
+      await doctorService.addDailyNotes(selectedPatient._id, {
+        notes: formValues.notes,
+        medicines: formValues.medicines.filter(
+          (med) => med.name && med.dosage
+        ),
+      });
+
+      toast.success('Daily notes added successfully!');
+      setShowNotesModal(false);
+      notesForm.resetForm();
       fetchPatients();
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Failed to discharge patient');
+      const errorMsg =
+        error.response?.data?.message || 'Failed to add notes';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
-  };
+  }
+);
+  const chargesForm = useForm(
+  {
+    type: '',
+    description: '',
+    amount: '',
+  },
+  async (formValues) => {
+    try {
+      if (!selectedPatient?._id) {
+        toast.error('No patient selected');
+        return;
+      }
 
+      setErrorMessage('');
+
+      await doctorService.addCharges(selectedPatient._id, {
+        ...formValues,
+        amount: parseFloat(formValues.amount),
+      });
+
+      toast.success('Charge added successfully!');
+      setShowChargesModal(false);
+      chargesForm.resetForm();
+      fetchPatients();
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || 'Failed to add charge';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+    }
+  }
+);
+  const dischargeSummaryForm = useForm(
+  {
+    reasonForAdmission: '',
+    diagnosis: '',
+    significantFindings: '',
+    investigations: '',
+    procedures: '',
+    treatmentGiven: '',
+    conditionAtDischarge: {
+      condition: '',
+      bp: '',
+      spo2: '',
+    },
+    medicines: [{ name: '', dose: '', frequency: '', duration: '' }],
+    instructions: '',
+    followUpAdvice: '',
+  },
+  async (formValues) => {
+    try {
+      if (!selectedPatient?._id) {
+        toast.error('No patient selected');
+        return;
+      }
+
+      setErrorMessage('');
+
+      await doctorService.createDischargeSummary({
+        ipdId: selectedPatient._id,
+        ...formValues,
+      });
+
+      await doctorService.dischargePatient(selectedPatient._id);
+
+      toast.success('Patient discharged successfully!');
+      setShowDischargeSummaryModal(false);
+      dischargeSummaryForm.resetForm();
+      fetchPatients();
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message ||
+        'Failed to discharge patient';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+    }
+  }
+);
+  const handleDischarge = async (patientId) => {
+  if (!window.confirm('Are you sure you want to discharge this patient?'))
+    return;
+
+  try {
+    setErrorMessage('');
+
+    await doctorService.dischargePatient(patientId);
+
+    toast.success('Patient discharged successfully!');
+    fetchPatients();
+  } catch (error) {
+    const errorMsg =
+      error.response?.data?.message || 'Failed to discharge patient';
+    setErrorMessage(errorMsg);
+    toast.error(errorMsg);
+  }
+};
   const addMedicineField = () => {
     notesForm.setValues(prev => ({
       ...prev,
@@ -124,6 +195,39 @@ export const IPDPatientsPage = () => {
     notesForm.setValues(prev => ({
       ...prev,
       medicines: prev.medicines.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addDischargeMedicineField = () => {
+    dischargeSummaryForm.setValues(prev => ({
+      ...prev,
+      medicines: [...prev.medicines, { name: '', dose: '', frequency: '', duration: '' }]
+    }));
+  };
+
+  const updateDischargeMedicine = (index, field, value) => {
+    dischargeSummaryForm.setValues(prev => ({
+      ...prev,
+      medicines: prev.medicines.map((med, i) =>
+        i === index ? { ...med, [field]: value } : med
+      )
+    }));
+  };
+
+  const removeDischargeMedicine = (index) => {
+    dischargeSummaryForm.setValues(prev => ({
+      ...prev,
+      medicines: prev.medicines.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateConditionAtDischarge = (field, value) => {
+    dischargeSummaryForm.setValues(prev => ({
+      ...prev,
+      conditionAtDischarge: {
+        ...prev.conditionAtDischarge,
+        [field]: value
+      }
     }));
   };
 
@@ -166,7 +270,10 @@ export const IPDPatientsPage = () => {
         <Button
           size="sm"
           variant="danger"
-          onClick={() => handleDischarge(patient._id)}
+          onClick={() => {
+            setSelectedPatient(patient);
+            setShowDischargeSummaryModal(true);
+          }}
         >
           Discharge
         </Button>
@@ -188,13 +295,22 @@ export const IPDPatientsPage = () => {
     },
     { key: 'totalAmount', header: 'Total Amount', render: (patient) => `₹${patient.totalAmount}` },
     { key: 'actions', header: 'Actions', render: (patient) => (
-      <Button
-        size="sm"
-        variant="primary"
-        onClick={() => window.open(`/bill/${patient._id}`, '_blank')}
-      >
-        Print Bill
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => window.open(`/bill/${patient._id}`, '_blank')}
+        >
+          Print Bill
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => window.open(`/discharge-summary/${patient._id}`, '_blank')}
+        >
+          Print Summary
+        </Button>
+      </div>
     )},
   ];
 
@@ -205,12 +321,7 @@ export const IPDPatientsPage = () => {
         <p className="text-gray-600 mt-2">Manage admitted and discharged patients</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
@@ -381,6 +492,225 @@ export const IPDPatientsPage = () => {
                   Add Charge
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => setShowChargesModal(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+      </Modal>
+
+      {/* Discharge Summary Modal */}
+      <Modal
+        isOpen={showDischargeSummaryModal}
+        onClose={() => setShowDischargeSummaryModal(false)}
+        title="Discharge Summary"
+        size="xl"
+      >
+        {selectedPatient && (
+          <div className="space-y-6">
+            {/* Patient Info Header */}
+            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+              <h3 className="font-semibold text-gray-900 mb-2">Patient Information</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Name:</span> {selectedPatient.patientId?.name}
+                </div>
+                <div>
+                  <span className="font-medium">UHID:</span> {selectedPatient.uhid}
+                </div>
+                <div>
+                  <span className="font-medium">IPD No:</span> {selectedPatient.ipdNumber}
+                </div>
+                <div>
+                  <span className="font-medium">Bed:</span> {selectedPatient.bedId?.bedNumber}
+                </div>
+                <div>
+                  <span className="font-medium">Admission:</span> {new Date(selectedPatient.admissionDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <span className="font-medium">Ward:</span> {selectedPatient.wardType}
+                </div>
+                <div>
+                  <span className="font-medium">Age:</span> {selectedPatient.patientId?.age}
+                </div>
+                <div>
+                  <span className="font-medium">Gender:</span> {selectedPatient.patientId?.gender}
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={dischargeSummaryForm.handleSubmit} className="space-y-6">
+              {/* Admission Details */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Admission Details</h4>
+                <FormInput
+                  label="Reason for Admission"
+                  type="text"
+                  name="reasonForAdmission"
+                  placeholder="Enter reason for admission"
+                  value={dischargeSummaryForm.values.reasonForAdmission}
+                  onChange={dischargeSummaryForm.handleChange}
+                  required
+                />
+              </div>
+
+              {/* Clinical Summary */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Clinical Summary</h4>
+                <FormTextarea
+                  label="Diagnosis"
+                  name="diagnosis"
+                  placeholder="Enter diagnosis"
+                  value={dischargeSummaryForm.values.diagnosis}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={2}
+                  required
+                />
+                <FormTextarea
+                  label="Significant Findings"
+                  name="significantFindings"
+                  placeholder="Enter significant findings"
+                  value={dischargeSummaryForm.values.significantFindings}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+                <FormTextarea
+                  label="Investigations"
+                  name="investigations"
+                  placeholder="Enter investigations performed"
+                  value={dischargeSummaryForm.values.investigations}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+                <FormTextarea
+                  label="Procedures"
+                  name="procedures"
+                  placeholder="Enter procedures performed"
+                  value={dischargeSummaryForm.values.procedures}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+                <FormTextarea
+                  label="Treatment Given"
+                  name="treatmentGiven"
+                  placeholder="Enter treatment given during hospitalization"
+                  value={dischargeSummaryForm.values.treatmentGiven}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+              </div>
+
+              {/* Condition at Discharge */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Condition at Discharge</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormInput
+                    label="Condition"
+                    type="text"
+                    placeholder="e.g., Stable, Improved"
+                    value={dischargeSummaryForm.values.conditionAtDischarge.condition}
+                    onChange={(e) => updateConditionAtDischarge('condition', e.target.value)}
+                    required
+                  />
+                  <FormInput
+                    label="Blood Pressure"
+                    type="text"
+                    placeholder="e.g., 120/80 mmHg"
+                    value={dischargeSummaryForm.values.conditionAtDischarge.bp}
+                    onChange={(e) => updateConditionAtDischarge('bp', e.target.value)}
+                  />
+                  <FormInput
+                    label="SpO2"
+                    type="text"
+                    placeholder="e.g., 98%"
+                    value={dischargeSummaryForm.values.conditionAtDischarge.spo2}
+                    onChange={(e) => updateConditionAtDischarge('spo2', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Medicines */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Discharge Medicines</h4>
+                <div className="space-y-3">
+                  {dischargeSummaryForm.values.medicines.map((medicine, index) => (
+                    <div key={index} className="flex gap-3 items-end p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <FormInput
+                          placeholder="Medicine name"
+                          value={medicine.name}
+                          onChange={(e) => updateDischargeMedicine(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <FormInput
+                          placeholder="Dose (e.g., 1 tablet)"
+                          value={medicine.dose}
+                          onChange={(e) => updateDischargeMedicine(index, 'dose', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <FormInput
+                          placeholder="Frequency (e.g., twice daily)"
+                          value={medicine.frequency}
+                          onChange={(e) => updateDischargeMedicine(index, 'frequency', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <FormInput
+                          placeholder="Duration (e.g., 5 days)"
+                          value={medicine.duration}
+                          onChange={(e) => updateDischargeMedicine(index, 'duration', e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        onClick={() => removeDischargeMedicine(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={addDischargeMedicineField}
+                  >
+                    Add Medicine
+                  </Button>
+                </div>
+              </div>
+
+              {/* Instructions and Advice */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Instructions & Follow-up</h4>
+                <FormTextarea
+                  label="Instructions"
+                  name="instructions"
+                  placeholder="Enter discharge instructions and dietary advice"
+                  value={dischargeSummaryForm.values.instructions}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+                <FormTextarea
+                  label="Follow-up Advice"
+                  name="followUpAdvice"
+                  placeholder="Enter follow-up advice and when to return"
+                  value={dischargeSummaryForm.values.followUpAdvice}
+                  onChange={dischargeSummaryForm.handleChange}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-6 border-t">
+                <Button type="submit" variant="primary" loading={dischargeSummaryForm.isSubmitting}>
+                  Discharge Patient
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setShowDischargeSummaryModal(false)}>
                   Cancel
                 </Button>
               </div>

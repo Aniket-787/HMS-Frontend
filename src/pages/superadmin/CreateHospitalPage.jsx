@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { superAdminService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
-import { FormInput, FormSelect, Button, ErrorAlert, SuccessAlert } from '../../components/common';
+import { FormInput, FormSelect, Button } from '../../components/common';
 import { SUBSCRIPTION_PLANS, HOSPITAL_STATUS } from '../../utils/constants';
+import { toast } from 'react-toastify';
 
 export const CreateHospitalPage = () => {
   const navigate = useNavigate();
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   const { values, errors, touched, isSubmitting, handleChange, handleSubmit, resetForm } = useForm(
     {
@@ -21,7 +20,7 @@ export const CreateHospitalPage = () => {
     },
     async (formValues) => {
       try {
-        setErrorMessage('');
+        
         
         // Validation
         const newErrors = {};
@@ -35,11 +34,11 @@ export const CreateHospitalPage = () => {
         }
 
         await superAdminService.createHospital(formValues);
-        setSuccessMessage('Hospital created successfully!');
+        toast.success('Hospital created successfully!');
         resetForm();
         setTimeout(() => navigate('/superadmin/hospitals'), 2000);
       } catch (error) {
-        setErrorMessage(error.response?.data?.message || 'Failed to create hospital');
+        toast.error(error.response?.data?.message || 'Failed to create hospital');
       }
     }
   );
@@ -51,12 +50,7 @@ export const CreateHospitalPage = () => {
         <p className="text-gray-600 mt-2">Add a new hospital to the system</p>
       </div>
 
-      {errorMessage && (
-        <ErrorAlert message={errorMessage} onClose={() => setErrorMessage('')} />
-      )}
-      {successMessage && (
-        <SuccessAlert message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
+      
 
       <div className="card">
         <form onSubmit={handleSubmit} className="space-y-4">
