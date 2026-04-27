@@ -103,6 +103,10 @@ export const adminService = {
   getHospitalStats: () => {
     return axiosInstance.get('/admin/hospital/stats');
   },
+
+  getHospitalQR: (id) => {
+    return axiosInstance.get(`/hospital/${id}/qrcode`);
+  } 
 };
 
 export const receptionistService = {
@@ -130,6 +134,11 @@ export const receptionistService = {
     return axiosInstance.get('/receptionist/opdlist');
   },
 
+  // Combined Visit (Patient + OPD)
+  createVisit: (data) => {
+    return axiosInstance.post('/receptionist/createVisit', data);
+  },
+
   getOPDById: (id) => {
     return axiosInstance.get(`/receptionist/opd/${id}`);
   },
@@ -140,7 +149,31 @@ export const receptionistService = {
 
   getPendingAppointments : ()=>{
     return axiosInstance.get('/receptionist/pending')
-  }
+  },
+
+  markAsPaid: (id) => {
+    return axiosInstance.patch(`/receptionist/opd/${id}/payment`);
+  },
+
+  // Appointment Requests
+  getAppointmentRequests: (hospitalId, status) => {
+  const params = {};
+
+  if (hospitalId) params.hospitalId = hospitalId;
+  if (status) params.status = status;
+
+  return axiosInstance.get('/receptionist/appointment-requests', { params });
+},
+
+  approveAppointmentRequest: (id) => {
+    return axiosInstance.patch(`/receptionist/appointment-requests/${id}/approve`);
+  },
+
+  rejectAppointmentRequest: (id) => {
+    return axiosInstance.patch(`/receptionist/appointment-requests/${id}/reject`);
+  },
+
+  
 
 };
 
@@ -222,5 +255,41 @@ export const analyticsService = {
 
   getDailyRevenue: () => {
     return axiosInstance.get('/analytics/revenue/daily');
+  },
+};
+
+// Public API for appointment requests (no auth required)
+export const appointmentRequestService = {
+  // Submit a new appointment request
+  createRequest: (data) => {
+    return axios.post(`${axiosInstance.defaults.baseURL}/appointment-request/`, data);
+  },
+
+  // Get hospital QR code
+  getHospitalQRCode: (hospitalId) => {
+    return axios.get(`${axiosInstance.defaults.baseURL}/hospital/${hospitalId}/qrcode`);
+  },
+
+   getDoctors: (hospitalId) => {
+    return axiosInstance.get(`/appointment-request/public/doctors/${hospitalId}`);
+  },
+};
+
+// Reports Service
+export const reportsService = {
+  // Export data (returns blob for download)
+  exportData: (type, format, fromDate, toDate) => {
+    const config = {
+      responseType: 'blob',
+      params: { fromDate, toDate }
+    };
+    return axiosInstance.get(`/reports/${type}/${format}`, config);
+  },
+
+  // Get preview data
+  getPreview: (type, fromDate, toDate) => {
+    return axiosInstance.get(`/reports/${type}/preview`, {
+      params: { fromDate, toDate }
+    });
   },
 };

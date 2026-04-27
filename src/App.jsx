@@ -4,13 +4,15 @@ import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PrintableBill } from './components/PrintableBill';
 import { PrintableDischargeSummary } from './components/PrintableDischargeSummary';
+import  Reports  from './components/Reports';
 import { ROLES } from './utils/constants';
 
 // Pages
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
-
+import { AppointmentRequestPage } from './pages/AppointmentRequestPage';
+import { HospitalQRPage } from './pages/receptionist/HospitalQRPage';
 // Super Admin Pages
 import { SuperAdminDashboard } from './pages/superadmin/SuperAdminDashboard';
 import { CreateHospitalPage } from './pages/superadmin/CreateHospitalPage';
@@ -30,8 +32,10 @@ import { ReceptionistDashboard } from './pages/receptionist/ReceptionistDashboar
 import { RegisterPatientPage } from './pages/receptionist/RegisterPatientPage';
 import { SearchPatientPage } from './pages/receptionist/SearchPatientPage';
 import { CreateOPDPage } from './pages/receptionist/CreateOPDPage';
+import { CreateVisitPage } from './pages/receptionist/CreateVisitPage';
 import { OPDListPage } from './pages/receptionist/OPDListPage';
 import { ReceptionistIPDPage } from './pages/receptionist/ReceptionistIPDPage';
+import { AppointmentRequestsPage } from './pages/receptionist/AppointmentRequestsPage';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
@@ -53,6 +57,9 @@ const AppRoutes = () => {
       <Route path="/about" element={<AboutUsPage />} />
       <Route path="/bill/:ipdId" element={<PrintableBill />} />
       <Route path="/discharge-summary/:ipdId" element={<PrintableDischargeSummary />} />
+      
+      {/* QR Appointment Request - Public Route */}
+      <Route path="/appointment/:hospitalId" element={<AppointmentRequestPage />} />
 
       {/* Super Admin Routes */}
       <Route
@@ -107,6 +114,18 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+       <Route
+  path="/admin/hospital-qr"
+  element={
+    <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+      <DashboardLayout>
+        <HospitalQRPage />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
+
       <Route
         path="/admin/create-doctor"
         element={
@@ -158,6 +177,18 @@ const AppRoutes = () => {
         }
       />
 
+      {/* Reports Route - Accessible by Admin, Receptionist, Doctor */}
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR]}>
+            <DashboardLayout>
+              <Reports />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Receptionist Routes */}
       <Route
         path="/receptionist"
@@ -169,12 +200,23 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/receptionist/register-patient"
         element={
           <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
             <DashboardLayout>
               <RegisterPatientPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/receptionist/create-visit"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
+            <DashboardLayout>
+              <CreateVisitPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -225,6 +267,16 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
             <DashboardLayout>
               <AnalyticsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/receptionist/appointment-requests"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.RECEPTIONIST]}>
+            <DashboardLayout>
+              <AppointmentRequestsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

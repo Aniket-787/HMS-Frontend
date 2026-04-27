@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { receptionistService } from '../../services/apiServices';
-import { FormInput, Button, Card, ErrorAlert, EmptyState } from '../../components/common';
+import { Button, Card, ErrorAlert, EmptyState } from '../../components/common';
 import { formatDate } from '../../utils/helpers';
 
 export const SearchPatientPage = () => {
+  const navigate = useNavigate();
+
   const [phone, setPhone] = useState('');
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,16 +20,7 @@ export const SearchPatientPage = () => {
 
     const trimmed = phone.trim();
 
-    // ✅ validation
-    if (!trimmed) {
-      setError('Please enter a phone number');
-      return;
-    }
-
-    if (!isValidPhone(trimmed)) {
-      setError('Enter a valid 10-digit phone number');
-      return;
-    }
+    if (!trimmed) return setError('Enter phone or UHID');
 
     try {
       setLoading(true);
@@ -35,20 +29,12 @@ export const SearchPatientPage = () => {
 
       const res = await receptionistService.searchPatient(trimmed);
 
-      if (!res.data.patient) {
-        setPatient(null);
-      } else {
-        setPatient(res.data.patient);
-      }
-
+      setPatient(res.data.patient || null);
       setSearched(true);
 
     } catch (err) {
-      // ✅ better error distinction
-      if (err.response?.status === 404) {
-        setPatient(null);
-      } else {
-        setError('Something went wrong. Try again.');
+      if (err.response?.status !== 404) {
+        setError('Something went wrong');
       }
       setSearched(true);
     } finally {
@@ -56,106 +42,143 @@ export const SearchPatientPage = () => {
     }
   };
 
-  const handleInputChange = (value) => {
-    setPhone(value);
-    setError('');
-    setSearched(false);
+  const handleAddToOPD = () => {
+    navigate('/receptionist/create-visit', { state: { patient } });
   };
 
-  const resetSearch = () => {
-    setPhone('');
-    setPatient(null);
-    setError('');
-    setSearched(false);
+  const handleAddToIPD = () => {
+    navigate('/receptionist/ipd', { state: { patient } });
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 flex justify-center p-6">
 
-        {/* HEADER */}
-        <div className="bg-white p-6 rounded shadow">
-          <h1 className="text-2xl font-bold">Search Patient</h1>
-          <p className="text-gray-600">Search by phone number</p>
+      <div className="w-full max-w-4xl space-y-6">
+
+        {/* 🔥 HEADER */}
+        <div>
+          <h1 className="text-xl font-semibold">Search Patient</h1>
+          <p className="text-sm text-gray-500">
+            Search using phone number or UHID
+          </p>
         </div>
 
-        {/* SEARCH */}
-        <Card className="p-6">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+        {/* 🔥 SEARCH BAR */}
+        <form
+          onSubmit={handleSearch}
+          className="flex gap-2 bg-white border rounded p-2 shadow-sm"
+        >
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              setError('');
+              setSearched(false);
+            }}
+            placeholder="Enter phone or UHID"
+            className="flex-1 outline-none px-2 text-sm"
+          />
 
-            <FormInput
-              label="Phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => handleInputChange(e.target.value)}
-              disabled={loading}
-            />
-
-            <div className="flex gap-2 items-end">
-              <Button type="submit" loading={loading}>
-                Search
-              </Button>
-
-              <Button type="button" onClick={resetSearch} disabled={loading}>
-                Reset
-              </Button>
-            </div>
-
-          </form>
-        </Card>
+          <Button type="submit" loading={loading}>
+            Search
+          </Button>
+        </form>
 
         {/* ERROR */}
         {error && <ErrorAlert message={error} onClose={() => setError('')} />}
 
         {/* NO RESULT */}
-        {searched && !patient && !loading && !error && (
+        {searched && !patient && !loading && (
           <EmptyState message="No patient found" />
         )}
 
-        {/* RESULT */}
+        {/* 🔥 RESULT */}
         {patient && (
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">Patient Details</h2>
+          <div className="grid md:grid-cols-2 gap-4">
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* LEFT: DETAILS */}
+            <div className="bg-white border rounded p-4 space-y-3">
 
-              <div>
-                <p className="text-gray-500">Name</p>
-                <p>{patient.name}</p>
-              </div>
+              <h2 className="font-semibold text-sm text-gray-600">
+                Patient Info
+              </h2>
 
-              <div>
-                <p className="text-gray-500">Phone</p>
-                <p>{patient.phone}</p>
-              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
 
-              <div>
-                <p className="text-gray-500">Age</p>
-                <p>{patient.age}</p>
-              </div>
+                <div>
+                  <p className="text-gray-400">Name</p>
+                  <p className="font-medium">{patient.name}</p>
+                </div>
 
-              <div>
-                <p className="text-gray-500">Gender</p>
-                <p>{patient.gender}</p>
-              </div>
+                <div>
+                  <p className="text-gray-400">Phone</p>
+                  <p className="font-medium">{patient.phone}</p>
+                </div>
 
-              <div>
-                <p className="text-gray-500">Blood Group</p>
-                <p>{patient.bloodGroup || 'N/A'}</p>
-              </div>
+                <div>
+                  <p className="text-gray-400">Age</p>
+                  <p className="font-medium">{patient.age}</p>
+                </div>
 
-              <div>
-                <p className="text-gray-500">Registered</p>
-                <p>{formatDate(patient.createdAt)}</p>
-              </div>
+                <div>
+                  <p className="text-gray-400">Gender</p>
+                  <p className="font-medium">{patient.gender}</p>
+                </div>
 
-              <div className="col-span-2">
-                <p className="text-gray-500">Address</p>
-                <p>{patient.address || 'N/A'}</p>
+                <div>
+                  <p className="text-gray-400">Blood</p>
+                  <p className="font-medium">{patient.bloodGroup || '-'}</p>
+                </div>
+
+                <div>
+                  <p className="text-gray-400">UHID</p>
+                  <p className="font-medium">{patient.uhid}</p>
+                </div>
+
+                <div className="col-span-2">
+                  <p className="text-gray-400">Registered</p>
+                  <p className="font-medium">{formatDate(patient.createdAt)}</p>
+                </div>
+
               </div>
 
             </div>
-          </Card>
+
+            {/* RIGHT: ACTIONS */}
+            <div className="bg-white border rounded p-4 flex flex-col justify-between">
+
+              <div>
+                <h2 className="font-semibold text-sm text-gray-600 mb-2">
+                  Actions
+                </h2>
+
+                <p className="text-xs text-gray-500">
+                  Choose what you want to do with this patient
+                </p>
+              </div>
+
+              <div className="space-y-2 mt-4">
+
+                <button
+                  onClick={handleAddToOPD}
+                  className="w-full h-10 bg-blue-500 text-white rounded text-sm font-medium"
+                >
+                  Add to OPD
+                </button>
+
+                <button
+                  onClick={handleAddToIPD}
+                  className="w-full h-10 bg-green-600 text-white rounded text-sm font-medium"
+                >
+                  Add to IPD
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
         )}
 
       </div>

@@ -15,6 +15,8 @@ import {
   List,
   TrendingUp,
   Bed,
+  QrCode,
+  Download,
 } from 'lucide-react';
 
 export const DashboardLayout = ({ children }) => {
@@ -39,20 +41,23 @@ export const DashboardLayout = ({ children }) => {
         { path: '/admin/create-receptionist', label: 'Create Receptionist', icon: Users },
         { path: '/admin/staff', label: 'View Staff', icon: List },
         { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
+        { path: '/reports', label: 'Reports', icon: Download },
       ],
       [ROLES.RECEPTIONIST]: [
         ...baseMenu,
-        { path: '/receptionist/register-patient', label: 'Register Patient', icon: Users },
+        { path: '/receptionist/create-visit', label: 'Create Visit', icon: Plus },
         { path: '/receptionist/search-patient', label: 'Search Patient', icon: Search },
-        { path: '/receptionist/create-opd', label: 'Create OPD', icon: Clock },
         { path: '/receptionist/opd-list', label: "Today's OPD", icon: List },
+        { path: '/receptionist/appointment-requests', label: 'Appointment Requests', icon: QrCode },
         { path: '/receptionist/ipd', label: 'IPD Patients', icon: Bed },
         { path: '/receptionist/analytics', label: 'Analytics', icon: TrendingUp },
+        { path: '/reports', label: 'Reports', icon: Download },
       ],
       [ROLES.DOCTOR]: [
         ...baseMenu,
         { path: '/doctor/queue', label: "Today's Queue", icon: Clock },
         { path: '/doctor/analytics', label: 'Analytics', icon: TrendingUp },
+        { path: '/reports', label: 'Reports', icon: Download },
       ],
     };
 

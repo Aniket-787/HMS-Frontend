@@ -20,7 +20,7 @@ export const Sidebar = ({ isOpen, onClose, menuItems }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:relative lg:translate-x-0 z-50 ${
+        className={`fixed left-0 top-0 h-screen w-64 bg-white transform transition-transform duration-300 lg:relative lg:translate-x-0 z-50 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
