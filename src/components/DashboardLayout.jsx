@@ -17,6 +17,7 @@ import {
   Bed,
   QrCode,
   Download,
+  MessageSquare,
 } from 'lucide-react';
 
 export const DashboardLayout = ({ children }) => {
@@ -34,6 +35,7 @@ export const DashboardLayout = ({ children }) => {
         { path: '/superadmin/create-hospital', label: 'Create Hospital', icon: Building2 },
         { path: '/superadmin/hospitals', label: 'View Hospitals', icon: List },
         { path: '/superadmin/create-admin', label: 'Create Admin', icon: Plus },
+        { path: '/superadmin/feedbacks', label: 'Feedbacks', icon: MessageSquare },
       ],
       [ROLES.ADMIN]: [
         ...baseMenu,

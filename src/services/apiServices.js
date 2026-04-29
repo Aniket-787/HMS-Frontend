@@ -293,3 +293,101 @@ export const reportsService = {
     });
   },
 };
+
+// Support & Feedback Service
+export const supportService = {
+  // Submit feedback (requires auth)
+  submitFeedback: (data) => {
+    return axiosInstance.post('/support/feedback', data);
+  },
+
+  // Get contact details (public)
+  getContactDetails: () => {
+    return axiosInstance.get('/support/contact-details');
+  },
+
+  // Superadmin: Get all feedbacks
+  getAllFeedbacks: (params) => {
+    return axiosInstance.get('/support/superadmin/feedbacks', { params });
+  },
+
+  // Superadmin: Get feedback stats
+  getFeedbackStats: () => {
+    return axiosInstance.get('/support/superadmin/feedbacks/stats');
+  },
+
+  // Superadmin: Update feedback status
+  updateFeedbackStatus: (id, data) => {
+    return axiosInstance.patch(`/support/superadmin/feedback/${id}/status`, data);
+  },
+
+  // Superadmin: Delete feedback
+  deleteFeedback: (id) => {
+    return axiosInstance.delete(`/support/superadmin/feedback/${id}`);
+  },
+};
+
+// User Profile Service
+export const userService = {
+  // Get current user profile
+  getProfile: () => {
+    return axiosInstance.get('/user/profile');
+  },
+
+  // Update profile
+  updateProfile: (data) => {
+    return axiosInstance.patch('/user/profile', data);
+  },
+
+  // Change password
+  changePassword: (data) => {
+    return axiosInstance.patch('/user/change-password', data);
+  },
+
+  // Upload profile picture
+  uploadProfilePicture: (formData) => {
+    return axiosInstance.post('/user/profile-picture', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // Remove profile picture
+  removeProfilePicture: () => {
+    return axiosInstance.delete('/user/profile-picture');
+  },
+
+  // Get session info
+  getSessionInfo: () => {
+    return axiosInstance.get('/user/session');
+  },
+};
+
+// Notification Service
+export const notificationService = {
+  // Get all notifications
+  getNotifications: (params) => {
+    return axiosInstance.get('/notifications', { params });
+  },
+
+  // Get unread count
+  getUnreadCount: () => {
+    return axiosInstance.get('/notifications/unread-count');
+  },
+
+  // Mark notification as read
+  markAsRead: (id) => {
+    return axiosInstance.patch(`/notifications/${id}/read`);
+  },
+
+  // Mark all as read
+  markAllAsRead: () => {
+    return axiosInstance.patch('/notifications/read-all');
+  },
+
+  // Delete notification
+  deleteNotification: (id) => {
+    return axiosInstance.delete(`/notifications/${id}`);
+  },
+};

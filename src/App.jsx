@@ -13,6 +13,8 @@ import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { AppointmentRequestPage } from './pages/AppointmentRequestPage';
 import { HospitalQRPage } from './pages/receptionist/HospitalQRPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
 // Super Admin Pages
 import { SuperAdminDashboard } from './pages/superadmin/SuperAdminDashboard';
 import { CreateHospitalPage } from './pages/superadmin/CreateHospitalPage';
@@ -46,6 +48,10 @@ import { MyPatientsPage } from './pages/doctor/MyPatientsPage';
 import { AdmitPatientPage } from './pages/doctor/AdmitPatientPage';
 import { IPDPatientsPage } from './pages/doctor/IPDPatientsPage';
 
+// Support Pages
+import { SupportPage } from './pages/support/SupportPage';
+import FeedbackManagementPage from './pages/superadmin/FeedbackManagementPage';
+
 const AppRoutes = () => {
   const { userRole } = useAuth();
 
@@ -55,8 +61,31 @@ const AppRoutes = () => {
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/about" element={<AboutUsPage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route path="/bill/:ipdId" element={<PrintableBill />} />
       <Route path="/discharge-summary/:ipdId" element={<PrintableDischargeSummary />} />
+      
+      {/* User Routes - Protected */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ProfilePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <SettingsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
       
       {/* QR Appointment Request - Public Route */}
       <Route path="/appointment/:hospitalId" element={<AppointmentRequestPage />} />
@@ -98,6 +127,16 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRoles={[ROLES.SUPER_ADMIN]}>
             <DashboardLayout>
               <CreateAdminPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/feedbacks"
+        element={
+          <ProtectedRoute requiredRoles={[ROLES.SUPER_ADMIN]}>
+            <DashboardLayout>
+              <FeedbackManagementPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

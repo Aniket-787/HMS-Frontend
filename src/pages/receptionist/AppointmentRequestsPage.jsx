@@ -166,6 +166,8 @@ export const AppointmentRequestsPage = () => {
                         </div>
                       )}
 
+                      <p>Date: {new Date(request.appointmentDate).toLocaleDateString()}</p>
+
                       <div className="text-xs text-gray-400 mt-2">
                         {new Date(request.createdAt).toLocaleString()}
                       </div>

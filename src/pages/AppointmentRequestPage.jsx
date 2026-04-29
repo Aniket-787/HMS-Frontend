@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { appointmentRequestService, receptionistService } from '../services';
-import { FormInput, FormSelect, FormTextarea, Button } from '../components/common';
-import { GENDER_OPTIONS } from '../utils/constants';
-import { toast } from 'react-toastify';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { appointmentRequestService, receptionistService } from "../services";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Button,
+} from "../components/common";
+import { GENDER_OPTIONS } from "../utils/constants";
+import { toast } from "react-toastify";
 
 export const AppointmentRequestPage = () => {
   const { hospitalId } = useParams();
@@ -14,12 +19,14 @@ export const AppointmentRequestPage = () => {
   const [submitted, setSubmitted] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    age: '',
-    gender: '',
-    doctorId: '',
-    symptoms: ''
+    name: "",
+    phone: "",
+    email: "",
+    appointmentDate: "",
+    age: "",
+    gender: "",
+    doctorId: "",
+    symptoms: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -28,15 +35,17 @@ export const AppointmentRequestPage = () => {
     const fetchData = async () => {
       try {
         // Fetch hospital details
-        const hospitalResponse = await appointmentRequestService.getHospitalQRCode(hospitalId);
+        const hospitalResponse =
+          await appointmentRequestService.getHospitalQRCode(hospitalId);
         setHospital(hospitalResponse.data.hospital);
 
         // Fetch doctors for the dropdown
-        const doctorsResponse = await appointmentRequestService.getDoctors(hospitalId);
+        const doctorsResponse =
+          await appointmentRequestService.getDoctors(hospitalId);
         setDoctors(doctorsResponse.data.doctors || []);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Invalid hospital or hospital not found');
+        console.error("Error fetching data:", error);
+        toast.error("Invalid hospital or hospital not found");
       } finally {
         setLoading(false);
       }
@@ -51,23 +60,27 @@ export const AppointmentRequestPage = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^[0-9]{10,15}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Enter a valid phone number';
+      newErrors.phone = "Phone number is required";
+    } else if (!/^[0-9]{10,15}$/.test(formData.phone.replace(/\D/g, ""))) {
+      newErrors.phone = "Enter a valid phone number";
     }
 
     if (!formData.age) {
-      newErrors.age = 'Age is required';
+      newErrors.age = "Age is required";
     } else if (Number(formData.age) <= 0 || Number(formData.age) > 150) {
-      newErrors.age = 'Enter a valid age';
+      newErrors.age = "Enter a valid age";
     }
 
     if (!formData.gender) {
-      newErrors.gender = 'Gender is required';
+      newErrors.gender = "Gender is required";
+    }
+
+    if (!formData.appointmentDate) {
+      newErrors.appointmentDate = "Appointment date required";
     }
 
     setErrors(newErrors);
@@ -76,10 +89,10 @@ export const AppointmentRequestPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -94,13 +107,13 @@ export const AppointmentRequestPage = () => {
         ...formData,
         hospitalId,
         age: parseInt(formData.age, 10),
-        doctorId: formData.doctorId || null
+        doctorId: formData.doctorId || null,
       });
 
       setSubmitted(true);
-      toast.success('Request submitted successfully! Wait for approval.');
+      toast.success("Request submitted successfully! Wait for approval.");
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to submit request');
+      toast.error(error.response?.data?.message || "Failed to submit request");
     } finally {
       setSubmitting(false);
     }
@@ -121,8 +134,12 @@ export const AppointmentRequestPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Hospital Not Found</h2>
-          <p className="text-gray-600">The QR code appears to be invalid or expired.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            Hospital Not Found
+          </h2>
+          <p className="text-gray-600">
+            The QR code appears to be invalid or expired.
+          </p>
         </div>
       </div>
     );
@@ -133,20 +150,35 @@ export const AppointmentRequestPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Request Submitted!</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Request Submitted!
+          </h2>
           <p className="text-gray-600 mb-4">
-            Your appointment request has been submitted to <strong>{hospital.name}</strong>.
+            Your appointment request has been submitted to{" "}
+            <strong>{hospital.name}</strong>.
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Please wait for approval. You will receive a token number once your request is approved.
+            Please wait for approval. You will receive a token number once your
+            request is approved.
           </p>
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Keep your phone number handy for verification.
+              <strong>Note:</strong> Keep your phone number handy for
+              verification.
             </p>
           </div>
         </div>
@@ -161,20 +193,22 @@ export const AppointmentRequestPage = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center gap-4">
             {hospital.logo ? (
-              <img 
-                src={hospital.logo} 
-                alt={hospital.name} 
+              <img
+                src={hospital.logo}
+                alt={hospital.name}
                 className="w-16 h-16 rounded-lg object-cover"
               />
             ) : (
               <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl font-bold text-blue-600">
-                  {hospital.name?.charAt(0) || 'H'}
+                  {hospital.name?.charAt(0) || "H"}
                 </span>
               </div>
             )}
             <div>
-              <h1 className="text-xl font-bold text-gray-800">{hospital.name}</h1>
+              <h1 className="text-xl font-bold text-gray-800">
+                {hospital.name}
+              </h1>
               <p className="text-sm text-gray-500">Book an Appointment</p>
             </div>
           </div>
@@ -182,8 +216,10 @@ export const AppointmentRequestPage = () => {
 
         {/* Appointment Form */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6">Patient Details</h2>
-          
+          <h2 className="text-lg font-semibold text-gray-800 mb-6">
+            Patient Details
+          </h2>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <FormInput
               label="Full Name"
@@ -206,6 +242,15 @@ export const AppointmentRequestPage = () => {
               error={errors.phone}
               placeholder="Enter phone number"
               required
+            />
+
+            <FormInput
+              label="Email (Optional)"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter email"
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -238,12 +283,22 @@ export const AppointmentRequestPage = () => {
               value={formData.doctorId}
               onChange={handleChange}
               options={[
-                { value: '', label: 'No specific doctor' },
-                ...doctors.map(doc => ({
+                { value: "", label: "No specific doctor" },
+                ...doctors.map((doc) => ({
                   value: doc._id,
-                  label: `Dr. ${doc.name}`
-                }))
+                  label: `Dr. ${doc.name}`,
+                })),
               ]}
+            />
+
+            <FormInput
+              label="Appointment Date"
+              name="appointmentDate"
+              type="date"
+              min={new Date().toISOString().split("T")[0]}
+              value={formData.appointmentDate}
+              onChange={handleChange}
+              required
             />
 
             <FormTextarea
@@ -255,18 +310,14 @@ export const AppointmentRequestPage = () => {
               rows={3}
             />
 
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full mt-6"
-            >
-              {submitting ? 'Submitting...' : 'Submit Appointment Request'}
+            <Button type="submit" disabled={submitting} className="w-full mt-6">
+              {submitting ? "Submitting..." : "Submit Appointment Request"}
             </Button>
           </form>
 
           <p className="text-xs text-gray-500 mt-4 text-center">
-            Your request will be reviewed by the hospital staff. 
-            You'll receive a token number once approved.
+            Your request will be reviewed by the hospital staff. You'll receive
+            a token number once approved.
           </p>
         </div>
       </div>

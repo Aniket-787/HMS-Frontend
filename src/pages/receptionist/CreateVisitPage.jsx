@@ -304,7 +304,7 @@ export const CreateVisitPage = () => {
     <div className="h-full flex flex-col">
       {/* Compact Header */}
       <div className="mb-3">
-        <h1 className="text-xl font-bold text-gray-900">Create Visit</h1>
+        <h1 className="text-xl font-bold text-gray-900">Create OPD</h1>
         <p className="text-xs text-gray-500">Register patient & create OPD in one flow</p>
       </div>
 

@@ -179,8 +179,14 @@ export const ReceptionistDashboard = () => {
           <div className="space-y-2">
             {appointments.slice(0, 5).map((apt) => (
               <div key={apt._id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                <span className="text-sm text-gray-700">Token #{apt.tokenNumber}</span>
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-700">{apt.patientId?.name || 'Unknown Patient'}</span>
+                  <span className="text-xs text-gray-500">UHID: {apt.patientId?.uhid || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-primary-600">Token #{apt.tokenNumber}</span>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
+                </div>
               </div>
             ))}
             {appointments.length === 0 && (
