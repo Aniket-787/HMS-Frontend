@@ -115,14 +115,18 @@ export const receptionistService = {
     return axiosInstance.post('/receptionist/patient', data);
   },
 
-  searchPatient: (phone) => {
+  searchPatient: (query) => {
     return axiosInstance.get('/receptionist/search/patient', {
-      params: { phone },
+      params: { query },
     });
   },
 
   getPatientList: () => {
     return axiosInstance.get('/receptionist/patientlist');
+  },
+
+  updatePatient: (id, data) => {
+    return axiosInstance.put(`/receptionist/patient/${id}`, data);
   },
 
   // OPD Management
@@ -141,6 +145,10 @@ export const receptionistService = {
 
   getOPDById: (id) => {
     return axiosInstance.get(`/receptionist/opd/${id}`);
+  },
+
+  updateOPD: (id, data) => {
+    return axiosInstance.put(`/receptionist/opd/${id}`, data);
   },
 
    getDoctors: () => {
@@ -228,6 +236,14 @@ export const doctorService = {
 
   dischargePatient: (ipdId) => {
     return axiosInstance.put(`/doctor/ipd/discharge/${ipdId}`);
+  },
+
+  getConsentFormData: (ipdId) => {
+    return axiosInstance.get(`/doctor/ipd/${ipdId}/consent-form`);
+  },
+
+  saveConsentFormData: (ipdId, data) => {
+    return axiosInstance.put(`/doctor/ipd/${ipdId}/consent-form`, data);
   },
 
   // Discharge Summary

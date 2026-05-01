@@ -35,11 +35,15 @@ export const Button = ({
 
 export const FormInput = ({
   label,
+  icon,
+  inputClassName = '',
   error,
   touched,
   required = false,
   ...props
 }) => {
+  const Icon = icon;
+
   return (
     <div className="form-group">
       {label && (
@@ -47,12 +51,19 @@ export const FormInput = ({
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      <input
-        className={`input-field ${
-          touched && error ? 'border-red-500 focus:ring-red-100' : ''
-        }`}
-        {...props}
-      />
+      <div className="relative">
+        {Icon && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <Icon className="w-4 h-4" />
+          </span>
+        )}
+        <input
+          className={`input-field ${Icon ? 'pl-10' : ''} ${inputClassName} ${
+            touched && error ? 'border-red-500 focus:ring-red-100' : ''
+          }`}
+          {...props}
+        />
+      </div>
       {touched && error && (
         <p className="text-red-500 text-sm mt-1">{error}</p>
       )}

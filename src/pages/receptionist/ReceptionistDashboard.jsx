@@ -95,6 +95,14 @@ export const ReceptionistDashboard = () => {
       iconColor: 'text-green-600',
     },
     {
+      icon: FileText,
+      label: 'IPD Consent',
+      description: 'Open IPD consent forms for admitted patients',
+      onClick: () => navigate('/receptionist/ipd'),
+      color: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+    },
+    {
       icon: Phone,
       label: 'Search Patient',
       description: 'Find existing patient by phone',

@@ -21,7 +21,11 @@ export const Table = ({ columns, data, loading, isEmpty }) => {
         <thead>
           <tr className="bg-gray-100 border-b-2 border-gray-200">
             {columns.map((col) => (
-              <th key={col.key} className="table-header text-left">
+              <th
+                key={col.key}
+                className="table-header text-left"
+                style={col.width ? { width: col.width } : undefined}
+              >
                 {col.label}
               </th>
             ))}
@@ -32,9 +36,13 @@ export const Table = ({ columns, data, loading, isEmpty }) => {
           {data.filter(Boolean).map((row, idx) => (
             <tr key={idx} className="table-row">
               {columns.map((col) => (
-                <td key={col.key} className="table-cell">
+                <td
+                  key={col.key}
+                  className="table-cell"
+                  style={col.width ? { width: col.width } : undefined}
+                >
                   {col.render
-                    ? col.render(row)
+                    ? col.render(row, idx)
                     : row?.[col.key] || 'N/A'}
                 </td>
               ))}

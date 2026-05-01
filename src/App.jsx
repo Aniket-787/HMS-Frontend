@@ -47,6 +47,7 @@ import { CompletedPage } from './pages/doctor/CompletedPage';
 import { MyPatientsPage } from './pages/doctor/MyPatientsPage';
 import { AdmitPatientPage } from './pages/doctor/AdmitPatientPage';
 import { IPDPatientsPage } from './pages/doctor/IPDPatientsPage';
+import { IPDConsentForm } from './pages/IPDConsentForm';
 
 // Support Pages
 import { SupportPage } from './pages/support/SupportPage';
@@ -64,6 +65,7 @@ const AppRoutes = () => {
       <Route path="/support" element={<SupportPage />} />
       <Route path="/bill/:ipdId" element={<PrintableBill />} />
       <Route path="/discharge-summary/:ipdId" element={<PrintableDischargeSummary />} />
+      <Route path="/ipd/:ipdId/consent-form" element={<IPDConsentForm />} />
       
       {/* User Routes - Protected */}
       <Route

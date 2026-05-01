@@ -246,37 +246,68 @@ export const IPDPatientsPage = () => {
     },
     { key: 'totalAmount', header: 'Total Amount', render: (patient) => `₹${patient.totalAmount}` },
     { key: 'actions', header: 'Actions', render: (patient) => (
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => {
-            setSelectedPatient(patient);
-            setShowNotesModal(true);
-          }}
-        >
-          Add Notes
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => {
-            setSelectedPatient(patient);
-            setShowChargesModal(true);
-          }}
-        >
-          Add Charges
-        </Button>
-        <Button
-          size="sm"
-          variant="danger"
-          onClick={() => {
-            setSelectedPatient(patient);
-            setShowDischargeSummaryModal(true);
-          }}
-        >
-          Discharge
-        </Button>
+      <div className="w-full max-w-lg bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
+          <div>
+            <p className="text-gray-500">Patient Name</p>
+            <p className="font-semibold text-gray-900">{patient.patientId?.name || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Bed Number</p>
+            <p className="font-semibold text-gray-900">{patient.bedId?.bedNumber || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Ward</p>
+            <p className="font-semibold text-gray-900">{patient.wardType || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Bill Amount</p>
+            <p className="font-semibold text-emerald-600">₹{patient.totalAmount}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              setSelectedPatient(patient);
+              setShowNotesModal(true);
+            }}
+          >
+            Add Notes
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              setSelectedPatient(patient);
+              setShowChargesModal(true);
+            }}
+          >
+            Add Charges
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            className="w-full"
+            onClick={() => navigate(`/ipd/${patient._id}/consent-form`)}
+          >
+            Print Consent
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            className="w-full"
+            onClick={() => {
+              setSelectedPatient(patient);
+              setShowDischargeSummaryModal(true);
+            }}
+          >
+            Discharge
+          </Button>
+        </div>
       </div>
     )},
   ];
@@ -295,21 +326,51 @@ export const IPDPatientsPage = () => {
     },
     { key: 'totalAmount', header: 'Total Amount', render: (patient) => `₹${patient.totalAmount}` },
     { key: 'actions', header: 'Actions', render: (patient) => (
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant="primary"
-          onClick={() => window.open(`/bill/${patient._id}`, '_blank')}
-        >
-          Print Bill
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => window.open(`/discharge-summary/${patient._id}`, '_blank')}
-        >
-          Print Summary
-        </Button>
+      <div className="w-full max-w-lg bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
+          <div>
+            <p className="text-gray-500">Patient Name</p>
+            <p className="font-semibold text-gray-900">{patient.patientId?.name || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Bed Number</p>
+            <p className="font-semibold text-gray-900">{patient.bedId?.bedNumber || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Ward</p>
+            <p className="font-semibold text-gray-900">{patient.wardType || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Bill Amount</p>
+            <p className="font-semibold text-emerald-600">₹{patient.totalAmount}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            className="w-full"
+            onClick={() => window.open(`/bill/${patient._id}`, '_blank')}
+          >
+            Print Bill
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full"
+            onClick={() => window.open(`/discharge-summary/${patient._id}`, '_blank')}
+          >
+            Print Summary
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            className="w-full"
+            onClick={() => navigate(`/ipd/${patient._id}/consent-form`)}
+          >
+            Print Consent
+          </Button>
+        </div>
       </div>
     )},
   ];

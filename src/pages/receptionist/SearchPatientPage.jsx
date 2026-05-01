@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { receptionistService } from '../../services/apiServices';
-import { Button, Card, ErrorAlert, EmptyState } from '../../components/common';
+import { Button, ErrorAlert, EmptyState, FormInput, FormSelect, FormTextarea } from '../../components/common';
 import { formatDate } from '../../utils/helpers';
+import { Modal } from '../../components/Modal';
+import { toast } from 'react-toastify';
+import { Edit } from 'lucide-react';
 
 export const SearchPatientPage = () => {
   const navigate = useNavigate();
@@ -12,6 +15,20 @@ export const SearchPatientPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    age: '',
+    gender: '',
+    phone: '',
+    address: ''
+  });
+
+  const genderOptions = [
+    { value: 'MALE', label: 'Male' },
+    { value: 'FEMALE', label: 'Female' },
+    { value: 'OTHER', label: 'Other' }
+  ];
 
   const isValidPhone = (num) => /^[6-9]\d{9}$/.test(num);
 
@@ -40,6 +57,35 @@ export const SearchPatientPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdatePatient = async () => {
+    try {
+      await receptionistService.updatePatient(patient._id, editForm);
+      toast.success('Patient details updated successfully');
+      setShowEditModal(false);
+      setPatient((prev) => ({ ...prev, ...editForm }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update patient');
+    }
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const openEditModal = () => {
+    setEditForm({
+      name: patient.name || '',
+      age: patient.age || '',
+      gender: patient.gender || '',
+      phone: patient.phone || '',
+      address: patient.address || '',
+    });
+    setShowEditModal(true);
   };
 
   const handleAddToOPD = () => {
@@ -159,21 +205,25 @@ export const SearchPatientPage = () => {
               </div>
 
               <div className="space-y-2 mt-4">
-
                 <button
                   onClick={handleAddToOPD}
                   className="w-full h-10 bg-blue-500 text-white rounded text-sm font-medium"
                 >
                   Add to OPD
                 </button>
-
                 <button
                   onClick={handleAddToIPD}
                   className="w-full h-10 bg-green-600 text-white rounded text-sm font-medium"
                 >
                   Add to IPD
                 </button>
-
+                <button
+                  onClick={openEditModal}
+                  className="w-full h-10 bg-gray-700 text-white rounded text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Patient
+                </button>
               </div>
 
             </div>
@@ -182,6 +232,61 @@ export const SearchPatientPage = () => {
         )}
 
       </div>
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Patient"
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleUpdatePatient}>
+              Save Changes
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="Full Name"
+              value={editForm.name}
+              onChange={(e) => handleEditFormChange('name', e.target.value)}
+              required
+            />
+            <FormInput
+              label="Age"
+              type="number"
+              value={editForm.age}
+              onChange={(e) => handleEditFormChange('age', e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormSelect
+              label="Gender"
+              options={genderOptions}
+              value={editForm.gender}
+              onChange={(e) => handleEditFormChange('gender', e.target.value)}
+              required
+            />
+            <FormInput
+              label="Mobile Number"
+              value={editForm.phone}
+              onChange={(e) => handleEditFormChange('phone', e.target.value)}
+              required
+            />
+          </div>
+          <FormTextarea
+            label="Address"
+            value={editForm.address}
+            onChange={(e) => handleEditFormChange('address', e.target.value)}
+            rows={3}
+          />
+        </div>
+      </Modal>
     </div>
   );
+
 };

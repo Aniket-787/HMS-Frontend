@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { doctorService, receptionistService, adminService } from '../../services/apiServices';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { doctorService, receptionistService } from '../../services/apiServices';
 import { useForm } from '../../hooks';
 import { Table } from '../../components/Table';
-import { Card, Loading, FormInput, FormSelect, FormTextarea, Button } from '../../components/common';
-import { Eye, Activity, UserPlus, Printer } from 'lucide-react';
+import { Card, Loading, FormInput, FormSelect, FormTextarea, Button, Badge } from '../../components/common';
+import { Eye, Activity, UserPlus, Printer, FileText } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { toast } from 'react-toastify';
 import { PrintableDischargeSummary } from '../../components/PrintableDischargeSummary';
@@ -16,6 +17,7 @@ const WARD_TYPES = [
 ];
 
 export const ReceptionistIPDPage = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('admitted');
   const [admittedPatients, setAdmittedPatients] = useState([]);
   const [dischargedPatients, setDischargedPatients] = useState([]);
@@ -27,6 +29,13 @@ export const ReceptionistIPDPage = () => {
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [selectedAdmitPatient, setSelectedAdmitPatient] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleOpenConsentForm = (patient) => {
+    if (!patient?._id) return;
+    navigate(`/ipd/${patient._id}/consent-form`);
+  };
 
   const {
     values,
@@ -84,6 +93,14 @@ export const ReceptionistIPDPage = () => {
     fetchPatients();
   }, []);
 
+  useEffect(() => {
+    const initialPatient = location.state?.patient;
+    if (initialPatient) {
+      setSelectedAdmitPatient(initialPatient);
+      setShowAdmitModal(true);
+    }
+  }, [location.state]);
+
   const fetchPatients = async () => {
     try {
       setLoadingData(true);
@@ -120,32 +137,59 @@ export const ReceptionistIPDPage = () => {
 
   const getAdmittedColumns = () => [
     {
-      key: 'name',
-      label: 'Patient Name',
-      render: (row) => row?.patientId?.name || 'N/A',
+      key: 'srNo',
+      label: 'Sr. No',
+      width: '8%',
+      render: (_, index) => index + 1,
+    },
+    {
+      key: 'ipdNumber',
+      label: 'IPD Number',
+      width: '14%',
+      render: (row) => row?.ipdNumber || 'N/A',
     },
     {
       key: 'uhid',
       label: 'UHID',
-      render: (row) => row?.uhid || 'N/A',
+      width: '14%',
+      render: (row) => row?.uhid || row?.patientId?.uhid || 'N/A',
     },
     {
-      key: 'phone',
-      label: 'Phone',
-      render: (row) => row?.patientId?.phone || 'N/A',
+      key: 'name',
+      label: 'Patient Name',
+      width: '18%',
+      render: (row) => row?.patientId?.name || 'N/A',
     },
     {
-      key: 'bed',
-      label: 'Bed Number',
-      render: (row) => row?.bedId?.bedNumber || 'N/A',
+      key: 'diagnosis',
+      label: 'Diagnosis',
+      width: '18%',
+      render: (row) => row?.diagnosis || 'N/A',
     },
     {
       key: 'admissionDate',
       label: 'Admission Date',
+      width: '14%',
       render: (row) =>
         row?.admissionDate
           ? new Date(row.admissionDate).toLocaleDateString()
           : 'N/A',
+    },
+    {
+      key: 'roomBed',
+      label: 'Room / Bed',
+      width: '14%',
+      render: (row) => row?.bedNumber || row?.bedId?.bedNumber || 'N/A',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      width: '12%',
+      render: (row) => (
+        <Badge variant={row.status === 'ADMITTED' ? 'success' : 'warning'}>
+          {row.status}
+        </Badge>
+      ),
     },
     {
       key: 'actions',
@@ -158,6 +202,13 @@ export const ReceptionistIPDPage = () => {
             title="View Details"
           >
             <Eye className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleOpenConsentForm(row)}
+            className="text-indigo-600 hover:text-indigo-800 font-medium text-sm"
+            title="Open Consent Form"
+          >
+            <FileText className="w-4 h-4" />
           </button>
           <button
             onClick={() => handlePrintDischargeSummary(row)}
@@ -173,35 +224,81 @@ export const ReceptionistIPDPage = () => {
 
 const getDischargedColumns = () => [
   {
-    key: 'name',
-    label: 'Patient Name',
-    render: (row) => row?.patientId?.name || 'N/A',
+    key: 'srNo',
+    label: 'Sr. No',
+    width: '8%',
+    render: (_, index) => index + 1,
+  },
+  {
+    key: 'ipdNumber',
+    label: 'IPD Number',
+    width: '14%',
+    render: (row) => row?.ipdNumber || 'N/A',
   },
   {
     key: 'uhid',
     label: 'UHID',
-    render: (row) => row?.uhid || 'N/A',
+    width: '14%',
+    render: (row) => row?.uhid || row?.patientId?.uhid || 'N/A',
   },
   {
-    key: 'phone',
-    label: 'Phone',
-    render: (row) => row?.patientId?.phone || 'N/A',
+    key: 'name',
+    label: 'Patient Name',
+    width: '18%',
+    render: (row) => row?.patientId?.name || 'N/A',
+  },
+  {
+    key: 'diagnosis',
+    label: 'Diagnosis',
+    width: '18%',
+    render: (row) => row?.diagnosis || 'N/A',
   },
   {
     key: 'admissionDate',
     label: 'Admission Date',
+    width: '14%',
     render: (row) =>
       row?.admissionDate
         ? new Date(row.admissionDate).toLocaleDateString()
         : 'N/A',
   },
   {
-    key: 'dischargeDate',
-    label: 'Discharge Date',
-    render: (row) =>
-      row?.dischargeDate
-        ? new Date(row.dischargeDate).toLocaleDateString()
-        : 'N/A',
+    key: 'roomBed',
+    label: 'Room / Bed',
+    width: '14%',
+    render: (row) => row?.bedNumber || row?.bedId?.bedNumber || 'N/A',
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    width: '12%',
+    render: (row) => (
+      <Badge variant={row.status === 'ADMITTED' ? 'success' : 'warning'}>
+        {row.status}
+      </Badge>
+    ),
+  },
+  {
+    key: 'actions',
+    label: 'Actions',
+    render: (row) => (
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => handleOpenConsentForm(row)}
+          className="text-indigo-600 hover:text-indigo-800 font-medium text-sm"
+          title="Open Consent Form"
+        >
+          <FileText className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => window.open(`/discharge-summary/${row._id}`, '_blank')}
+          className="text-green-600 hover:text-green-800 font-medium text-sm"
+          title="Print Discharge Summary"
+        >
+          <Printer className="w-4 h-4" />
+        </button>
+      </div>
+    ),
   },
 ];
   if (loadingData) {
@@ -375,6 +472,15 @@ const getDischargedColumns = () => [
         <p>{selectedPatient.notes}</p>
       </div>
     )}
+
+    <div className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-3">
+      <Button
+        variant="primary"
+        onClick={() => handleOpenConsentForm(selectedPatient)}
+      >
+        Open Consent Form
+      </Button>
+    </div>
   </div>
 )}
       </Modal>
@@ -403,7 +509,6 @@ const getDischargedColumns = () => [
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             <FormSelect
               label="Doctor"
               name="doctorId"
